@@ -1,12 +1,14 @@
-const ABOUT_TEXT = `I'm a passionate developer with over 5 years of experience creating digital products that make a difference. My journey began with a fascination for how technology can simplify complex problems, and it has evolved into a career dedicated to crafting beautiful, functional applications.
+const ABOUT_TEXT = `Full-Stack Software Developer with hands-on experience building modern, performant web applications using React, Vite, Next.js, and Node.js. Capable of delivering end-to-end solutions — from custom admin panels and relational databases (PostgreSQL) to backend systems with AI integration and Web3 architectures. Strong focus on clean code, type safety, and scalable development.
 
-I specialize in iOS development using Swift and SwiftUI, but I'm also comfortable working with React, TypeScript, and Node.js on full-stack projects. I believe in writing clean, maintainable code and creating user experiences that feel intuitive.
+Currently working as a Freelance Full-Stack Developer, handling complete rebuilds of corporate websites with React + Vite, achieving Lighthouse scores of 95+. Building custom admin panels with full CRUD functionality for content management, job postings, and team profiles. Architecting full-stack apps with Next.js App Router and Server Actions, using PostgreSQL via Drizzle ORM with type-safe queries, data validation with Zod, and React Hook Form.
 
-When I'm not coding, you'll find me exploring new technologies, contributing to open-source projects, or enjoying the vibrant tech scene in Milan.`;
+Previously at Capgemini Engineering as Associate Product Software Engineer, where I built responsive interfaces for a blockchain mobility dApp using React, TypeScript, and Tailwind CSS, optimizing Core Web Vitals and integrating OpenSea APIs to reduce load times by 20%.`;
 
 const SKILLS = [
-  'Swift', 'SwiftUI', 'iOS', 'React', 'TypeScript', 
-  'Node.js', 'PostgreSQL', 'Firebase', 'Figma', 'Git'
+  'React', 'Next.js', 'Vite', 'TypeScript', 'JavaScript',
+  'Tailwind CSS', 'Zustand', 'Shadcn/ui', 'Node.js', 'Express',
+  'PostgreSQL', 'Drizzle ORM', 'REST APIs', 'Python', 'Zod',
+  'Solidity', 'Hardhat', 'Ethers.js', 'Web3.js', 'Git'
 ];
 
 export default function About() {

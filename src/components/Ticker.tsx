@@ -1,36 +1,34 @@
+import { memo } from 'react';
+
 const TICKER_ITEMS = [
-  "Milan, Italy",
+  "Pioltello (MI), Italy",
   "Open to work",
-  "iOS Developer",
-  "Full-Stack",
+  "Full-Stack Developer",
+  "React • Next.js • Node.js",
   "Available for freelance",
 ];
 
-export default function Ticker() {
-  const duplicatedItems = [...TICKER_ITEMS, ...TICKER_ITEMS];
+const itemsString = TICKER_ITEMS.join('  •  ');
 
+function TickerComponent() {
   return (
     <div
-      className="w-full overflow-hidden py-4"
+      className="w-full overflow-hidden py-3"
       style={{ backgroundColor: 'var(--color-accent)' }}
     >
-      <div
-        className="flex whitespace-nowrap"
-        style={{
-          animation: 'marquee 30s linear infinite',
-        }}
-      >
-        {duplicatedItems.map((item, index) => (
+      <div className="ticker-track">
+        {[...Array(8)].map((_, i) => (
           <span
-            key={index}
-            className="font-mono text-[12px] uppercase tracking-widest mx-6"
+            key={i}
+            className="ticker-item font-mono text-[12px] uppercase tracking-widest px-4"
             style={{ color: '#FFFFFF' }}
           >
-            {item}
-            <span className="mx-6" style={{ opacity: 0.5 }}>•</span>
+            {itemsString}
           </span>
         ))}
       </div>
     </div>
   );
 }
+
+export default memo(TickerComponent);

@@ -28,12 +28,25 @@ function ProjectListComponent({ onProjectSelect }: ProjectListProps) {
             <button
               key={project.id}
               onClick={() => onProjectSelect(project)}
-              className="text-left group p-6 rounded-2xl transition-all duration-300 hover:scale-[1.02]"
+              className="text-left group p-4 rounded-2xl transition-all duration-300 hover:scale-[1.02]"
               style={{
                 backgroundColor: 'var(--color-surface)',
                 border: '1px solid var(--color-border)',
               }}
             >
+              {project.imageUrl && (
+                <div 
+                  className="w-full h-40 mb-4 overflow-hidden"
+                  style={{ borderRadius: '12px' }}
+                >
+                  <img 
+                    src={project.imageUrl} 
+                    alt={project.name}
+                    className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                    loading="lazy"
+                  />
+                </div>
+              )}
               <span
                 className="font-mono text-[11px] uppercase tracking-widest block mb-3"
                 style={{ color: 'var(--color-text-secondary)' }}

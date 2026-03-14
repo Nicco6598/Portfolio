@@ -102,8 +102,20 @@
     transform: translateX(0);
   }
   100% {
-    transform: translateX(-50%);
+    transform: translateX(-12.5%);
   }
+}
+
+.ticker-track {
+  display: flex;
+  flex-wrap: nowrap;
+  width: max-content;
+  animation: marquee 25s linear infinite;
+}
+
+.ticker-item {
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 @keyframes underline-grow {

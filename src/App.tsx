@@ -14,7 +14,7 @@ import Contact from './components/Contact';
 function App() {
   useLenis();
   
-  const [loaderComplete, setLoaderComplete] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
 
@@ -27,12 +27,16 @@ function App() {
     setIsSheetOpen(false);
   };
 
+  const handleLoaderComplete = () => {
+    setLoading(false);
+  };
+
   return (
     <ThemeProvider>
       <HashRouter>
-        {!loaderComplete && <Loader onComplete={() => setLoaderComplete(true)} />}
+        <Loader onComplete={handleLoaderComplete} />
         
-        {loaderComplete && (
+        {!loading && (
           <>
             <Navbar />
             <main>
