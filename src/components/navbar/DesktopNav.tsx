@@ -19,6 +19,7 @@ function DesktopNavComponent({ activeSection, onNavigate }: DesktopNavProps) {
             <li key={link.label}>
               <a
                 href={link.href}
+                aria-current={isActive ? 'location' : undefined}
                 onClick={(event) => {
                   if (onNavigate) {
                     event.preventDefault();

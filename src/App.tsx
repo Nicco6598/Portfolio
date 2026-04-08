@@ -95,8 +95,11 @@ function App() {
           aria-hidden={isIntroActive}
         >
           <>
+            <a href="#main-content" className="skip-link">
+              Skip to content
+            </a>
             <Navbar />
-            <main>
+            <main id="main-content" tabIndex={-1}>
               <Hero onProjectSelect={handleProjectSelect} isReady={isAppRevealed} />
               <ProjectList onProjectSelect={handleProjectSelect} />
               <About />

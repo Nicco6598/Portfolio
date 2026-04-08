@@ -131,6 +131,7 @@ function MobileNavComponent({ activeSection, onClose, onNavigate }: MobileNavPro
                   <li key={link.label}>
                     <a
                       href={link.href}
+                      aria-current={isActive ? 'location' : undefined}
                       onClick={(event) => {
                         if (onNavigate) {
                           event.preventDefault();
