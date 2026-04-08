@@ -10,12 +10,11 @@ interface HeroProjectPreviewProps {
 
 function HeroProjectPreviewComponent({ project, previewRef }: HeroProjectPreviewProps) {
   const { theme } = useTheme();
+  const isLightTheme = theme === 'light';
 
   if (!project) {
     return null;
   }
-
-  const isLightTheme = theme === 'light';
 
   return (
     <div

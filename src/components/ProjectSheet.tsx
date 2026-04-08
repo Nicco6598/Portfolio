@@ -1,5 +1,6 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import type { CSSProperties, ReactNode } from 'react';
+import { CV_OPTIONS, EMAIL } from '../config/site';
 import type { Project } from '../data/projects';
 import { useBodyScrollLock } from '../hooks/useBodyScrollLock';
 import { useCanHover } from '../hooks/useCanHover';
@@ -25,6 +26,7 @@ interface ProjectSheetLinkProps {
   label: string;
   accent: string;
   variant: 'primary' | 'secondary';
+  openInNewTab?: boolean;
 }
 
 const EMPTY_FEATURES: string[] = [];
@@ -33,6 +35,7 @@ const SHEET_EASE = [0.22, 1, 0.36, 1] as const;
 const OVERLAY_TRANSITION = { duration: 0.28, ease: SHEET_EASE } as const;
 const SHEET_TRANSITION = { duration: 0.68, ease: SHEET_EASE } as const;
 const CONTENT_TRANSITION = { duration: 0.5, ease: SHEET_EASE, delay: 0.08 } as const;
+const PRIMARY_CV_OPTION = CV_OPTIONS[0];
 
 function ProjectSheetSection({ label, children }: ProjectSheetSectionProps) {
   return (
@@ -57,6 +60,7 @@ function ProjectSheetLink({
   label,
   accent,
   variant,
+  openInNewTab = true,
 }: ProjectSheetLinkProps) {
   const linkRef = useRadialHover<HTMLAnchorElement>(canHover);
   const isPrimary = variant === 'primary';
@@ -65,8 +69,8 @@ function ProjectSheetLink({
     <a
       ref={linkRef}
       href={href}
-      target="_blank"
-      rel="noopener noreferrer"
+      target={openInNewTab ? '_blank' : undefined}
+      rel={openInNewTab ? 'noopener noreferrer' : undefined}
       className={`radial-hover-surface group inline-flex items-center justify-between gap-4 rounded-full border px-5 py-3 font-mono text-[11px] uppercase tracking-[0.28em] ${canHover ? 'hover:-translate-y-0.5' : ''}`.trim()}
       style={{
         ['--radial-fill' as string]: accent,
@@ -85,16 +89,54 @@ function ProjectSheetLink({
   );
 }
 
+function ProjectSheetMetaCard({
+  label,
+  value,
+  accent,
+}: {
+  label: string;
+  value: string;
+  accent: string;
+}) {
+  return (
+    <div
+      className="rounded-[22px] border p-4"
+      style={{
+        borderColor: 'var(--color-border)',
+        backgroundColor: 'color-mix(in srgb, var(--color-surface) 82%, transparent)',
+      }}
+    >
+      <span
+        className="mb-2 block font-mono text-[10px] uppercase tracking-[0.24em]"
+        style={{ color: accent }}
+      >
+        {label}
+      </span>
+      <p
+        className="text-sm leading-6 md:text-[15px]"
+        style={{ color: 'var(--color-text-primary)' }}
+      >
+        {value}
+      </p>
+    </div>
+  );
+}
+
 function ProjectSheetMainContent({
+  canHover,
   project,
   accent,
 }: {
+  canHover: boolean;
   project: Project;
   accent: string;
 }) {
   const features = project.features ?? EMPTY_FEATURES;
+  const outcomes = project.outcomes ?? EMPTY_FEATURES;
   const leadFeature = features[0];
   const detailFeatures = leadFeature ? features.slice(1) : features;
+  const accessLabel = project.liveUrl ? 'Live and code' : project.githubUrl ? 'Code only' : 'Private build';
+  const headerMeta = [project.role, project.tags[0] ?? 'Web Project', accessLabel];
 
   return (
     <div className="space-y-12 md:space-y-14">
@@ -128,6 +170,22 @@ function ProjectSheetMainContent({
           >
             {project.tagline}
           </p>
+
+          <div className="mt-6 flex flex-wrap gap-2.5">
+            {headerMeta.map((item) => (
+              <span
+                key={item}
+                className="rounded-full border px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.18em]"
+                style={{
+                  borderColor: 'var(--color-border)',
+                  color: 'var(--color-text-secondary)',
+                  backgroundColor: 'color-mix(in srgb, var(--color-surface) 78%, transparent)',
+                }}
+              >
+                {item}
+              </span>
+            ))}
+          </div>
         </div>
       </header>
 
@@ -138,6 +196,58 @@ function ProjectSheetMainContent({
         >
           {project.description}
         </p>
+      </ProjectSheetSection>
+
+      <ProjectSheetSection label="Outcomes">
+        <div className="space-y-6">
+          <div
+            className="max-w-3xl rounded-[28px] border p-6 md:p-7"
+            style={{
+              borderColor: 'var(--color-border)',
+              backgroundColor: 'color-mix(in srgb, var(--color-surface) 82%, transparent)',
+            }}
+          >
+            <span
+              className="mb-3 block font-mono text-[10px] uppercase tracking-[0.28em]"
+              style={{ color: accent }}
+            >
+              Outcome snapshot
+            </span>
+            <p
+              className="text-base leading-7 md:text-lg"
+              style={{ color: 'var(--color-text-primary)' }}
+            >
+              {project.impact}
+            </p>
+          </div>
+
+          {outcomes.length > 0 ? (
+            <div>
+              {outcomes.map((outcome, index) => (
+                <div
+                  key={outcome}
+                  className="grid gap-3 py-5 md:grid-cols-[72px_minmax(0,1fr)] md:gap-6"
+                  style={{
+                    borderTop: index === 0 ? 'none' : '1px solid var(--color-border)',
+                  }}
+                >
+                  <span
+                    className="font-mono text-[11px] uppercase tracking-[0.28em]"
+                    style={{ color: accent }}
+                  >
+                    0{index + 1}
+                  </span>
+                  <p
+                    className="text-base leading-7 md:text-lg"
+                    style={{ color: 'var(--color-text-secondary)' }}
+                  >
+                    {outcome}
+                  </p>
+                </div>
+              ))}
+            </div>
+          ) : null}
+        </div>
       </ProjectSheetSection>
 
       {leadFeature ? (
@@ -207,6 +317,47 @@ function ProjectSheetMainContent({
           ))}
         </div>
       </ProjectSheetSection>
+
+      <ProjectSheetSection label="Next Step">
+        <div
+          className="max-w-3xl rounded-[32px] border p-6 md:p-8"
+          style={{
+            borderColor: 'var(--color-border)',
+            background: `linear-gradient(180deg, color-mix(in srgb, ${accent} 7%, var(--color-surface) 93%) 0%, color-mix(in srgb, var(--color-surface) 92%, transparent) 100%)`,
+          }}
+        >
+          <span
+            className="mb-3 block font-mono text-[10px] uppercase tracking-[0.28em]"
+            style={{ color: accent }}
+          >
+            Similar scope?
+          </span>
+          <p
+            className="max-w-2xl text-[18px] leading-8 md:text-[22px] md:leading-9"
+            style={{ color: 'var(--color-text-primary)' }}
+          >
+            If you need the same level of product thinking, frontend polish, and implementation quality, let&apos;s talk about the build.
+          </p>
+
+          <div className="mt-6 flex flex-wrap gap-3">
+            <ProjectSheetLink
+              canHover={canHover}
+              href={`mailto:${EMAIL}`}
+              label="Start a conversation"
+              accent={accent}
+              variant="primary"
+              openInNewTab={false}
+            />
+            <ProjectSheetLink
+              canHover={canHover}
+              href={PRIMARY_CV_OPTION.href}
+              label="Download CV"
+              accent={accent}
+              variant="secondary"
+            />
+          </div>
+        </div>
+      </ProjectSheetSection>
     </div>
   );
 }
@@ -221,6 +372,7 @@ function ProjectSheetSidebar({
   accent: string;
 }) {
   const projectType = project.tags[0] ?? 'Web Project';
+  const leadOutcome = project.outcomes?.[0] ?? project.impact;
   const availabilityLabel = project.liveUrl ? 'Live and code' : project.githubUrl ? 'Code only' : 'Private build';
   const metaItems = [
     { label: 'Role', value: project.role },
@@ -290,23 +442,36 @@ function ProjectSheetSidebar({
         </div>
       </div>
 
-      <div className="mt-8 grid grid-cols-2 gap-x-6 gap-y-5">
+      <div className="mt-8 grid grid-cols-1 gap-3 sm:grid-cols-2">
         {metaItems.map((item) => (
-          <div key={item.label}>
-            <span
-              className="mb-2 block font-mono text-[10px] uppercase tracking-[0.28em]"
-              style={{ color: 'var(--color-text-secondary)' }}
-            >
-              {item.label}
-            </span>
-            <p
-              className="text-sm leading-6 md:text-[15px]"
-              style={{ color: 'var(--color-text-primary)' }}
-            >
-              {item.value}
-            </p>
-          </div>
+          <ProjectSheetMetaCard
+            key={item.label}
+            label={item.label}
+            value={item.value}
+            accent={accent}
+          />
         ))}
+      </div>
+
+      <div
+        className="mt-8 rounded-[28px] border p-5"
+        style={{
+          borderColor: 'var(--color-border)',
+          backgroundColor: 'color-mix(in srgb, var(--color-bg) 58%, transparent)',
+        }}
+      >
+        <span
+          className="mb-3 block font-mono text-[10px] uppercase tracking-[0.28em]"
+          style={{ color: accent }}
+        >
+          Outcome
+        </span>
+        <p
+          className="text-sm leading-6 md:text-[15px]"
+          style={{ color: 'var(--color-text-primary)' }}
+        >
+          {leadOutcome}
+        </p>
       </div>
 
       <div className="mt-8 flex flex-col gap-3">
@@ -423,7 +588,7 @@ export default function ProjectSheet({
               >
                 <div className="grid gap-12 lg:grid-cols-[minmax(320px,0.92fr)_minmax(0,1.08fr)] lg:gap-16">
                   <ProjectSheetSidebar canHover={canHover} project={project} accent={accent} />
-                  <ProjectSheetMainContent project={project} accent={accent} />
+                  <ProjectSheetMainContent canHover={canHover} project={project} accent={accent} />
                 </div>
               </motion.div>
             </div>

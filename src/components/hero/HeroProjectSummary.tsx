@@ -36,6 +36,27 @@ function HeroProjectSummaryComponent({ project }: HeroProjectSummaryProps) {
         {project.tagline}
       </p>
 
+      <div
+        className="rounded-[20px] border px-4 py-3"
+        style={{
+          borderColor: 'var(--color-border)',
+          backgroundColor: 'color-mix(in srgb, var(--color-bg) 58%, transparent)',
+        }}
+      >
+        <span
+          className="mb-2 block font-mono text-[10px] uppercase tracking-[0.2em]"
+          style={{ color: 'var(--color-accent)' }}
+        >
+          Outcome
+        </span>
+        <p
+          className="text-sm leading-6"
+          style={{ color: 'var(--color-text-primary)' }}
+        >
+          {project.impact}
+        </p>
+      </div>
+
       <div className="flex flex-wrap gap-2">
         {project.tags.slice(0, 4).map((tag) => (
           <span

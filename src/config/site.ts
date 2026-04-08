@@ -16,7 +16,13 @@ export interface SocialLink {
   href: string;
 }
 
+export const PERSON_NAME = 'Marco Niccolini';
 export const SITE_NAME = 'MN.';
+export const SITE_TITLE = `${PERSON_NAME} | Full-Stack Software Developer`;
+export const SITE_DESCRIPTION = 'Full-stack software developer building fast, polished web experiences with React, Next.js, Node.js, and TypeScript.';
+export const LOCATION_LABEL = 'Pioltello (MI), Italy';
+export const AVAILABILITY_LABEL = 'Open to freelance projects and opportunities';
+export const CORE_FOCUS_LABEL = 'React, Next.js, Node.js, TypeScript';
 
 export const NAV_ITEMS: NavItem[] = [
   { label: 'Works', href: '#works', sectionId: 'works' },
