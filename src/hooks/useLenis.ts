@@ -3,6 +3,11 @@ import Lenis from 'lenis';
 
 export function useLenis() {
   useEffect(() => {
+    const reducedMotionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+    if (reducedMotionQuery.matches) {
+      return;
+    }
+
     const lenis = new Lenis({
       duration: 1.2,
       easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
@@ -13,14 +18,17 @@ export function useLenis() {
       touchMultiplier: 2,
     });
 
+    let frameId = 0;
+
     function raf(time: number) {
       lenis.raf(time);
-      requestAnimationFrame(raf);
+      frameId = window.requestAnimationFrame(raf);
     }
 
-    requestAnimationFrame(raf);
+    frameId = window.requestAnimationFrame(raf);
 
     return () => {
+      window.cancelAnimationFrame(frameId);
       lenis.destroy();
     };
   }, []);

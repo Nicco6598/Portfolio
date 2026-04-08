@@ -1,6 +1,7 @@
 import { memo } from 'react';
-import { projects } from '../data/projects';
+import { projectCountLabel, projects } from '../data/projects';
 import type { Project } from '../data/projects';
+import ProjectVisual from './projects/ProjectVisual';
 
 interface ProjectListProps {
   onProjectSelect: (project: Project) => void;
@@ -34,24 +35,22 @@ function ProjectListComponent({ onProjectSelect }: ProjectListProps) {
                 border: '1px solid var(--color-border)',
               }}
             >
-              {project.imageUrl && (
-                <div 
-                  className="w-full h-40 mb-4 overflow-hidden"
-                  style={{ borderRadius: '12px' }}
-                >
-                  <img 
-                    src={project.imageUrl} 
-                    alt={project.name}
-                    className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                    loading="lazy"
-                  />
-                </div>
-              )}
+              <div 
+                className="w-full h-40 mb-4 overflow-hidden"
+                style={{ borderRadius: '12px' }}
+              >
+                <ProjectVisual
+                  project={project}
+                  variant="card"
+                  className="w-full h-full transition-transform duration-300 group-hover:scale-105"
+                  imageClassName="w-full h-full object-cover"
+                />
+              </div>
               <span
                 className="font-mono text-[11px] uppercase tracking-widest block mb-3"
                 style={{ color: 'var(--color-text-secondary)' }}
               >
-                {project.index} / {projects.length.toString().padStart(2, '0')}
+                {project.index} / {projectCountLabel}
               </span>
               <h3
                 className="font-serif-display text-[24px] mb-2 group-hover:text-[var(--color-accent)] transition-colors duration-200"

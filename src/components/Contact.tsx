@@ -1,6 +1,14 @@
-const EMAIL = 'nicco6598@gmail.com';
-const GITHUB_URL = 'https://github.com/Nicco6598';
-const LINKEDIN_URL = 'https://www.linkedin.com/in/marconiccolini-/';
+import { CURRENT_YEAR, EMAIL, SOCIAL_LINKS } from '../config/site';
+
+function SocialArrow() {
+  return (
+    <span className="overflow-hidden transition-transform duration-200 group-hover:translate-x-1">
+      <svg className="w-4 h-4 transition-colors duration-200 group-hover:text-[var(--color-accent)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+      </svg>
+    </span>
+  );
+}
 
 export default function Contact() {
   return (
@@ -39,34 +47,19 @@ export default function Contact() {
           </a>
 
           <div className="flex gap-8">
-            <a
-              href={GITHUB_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="group inline-flex items-center gap-2 font-mono text-[12px] uppercase tracking-widest"
-              style={{ color: 'var(--color-text-secondary)' }}
-            >
-              <span className="transition-colors duration-200 group-hover:text-[var(--color-accent)]">GitHub</span>
-              <span className="overflow-hidden transition-transform duration-200 group-hover:translate-x-1">
-                <svg className="w-4 h-4 transition-colors duration-200 group-hover:text-[var(--color-accent)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
-                </svg>
-              </span>
-            </a>
-            <a
-              href={LINKEDIN_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="group inline-flex items-center gap-2 font-mono text-[12px] uppercase tracking-widest"
-              style={{ color: 'var(--color-text-secondary)' }}
-            >
-              <span className="transition-colors duration-200 group-hover:text-[var(--color-accent)]">LinkedIn</span>
-              <span className="overflow-hidden transition-transform duration-200 group-hover:translate-x-1">
-                <svg className="w-4 h-4 transition-colors duration-200 group-hover:text-[var(--color-accent)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
-                </svg>
-              </span>
-            </a>
+            {SOCIAL_LINKS.map((link) => (
+              <a
+                key={link.label}
+                href={link.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group inline-flex items-center gap-2 font-mono text-[12px] uppercase tracking-widest"
+                style={{ color: 'var(--color-text-secondary)' }}
+              >
+                <span className="transition-colors duration-200 group-hover:text-[var(--color-accent)]">{link.label}</span>
+                <SocialArrow />
+              </a>
+            ))}
           </div>
         </div>
       </div>
@@ -80,7 +73,7 @@ export default function Contact() {
             className="font-mono text-[11px] uppercase tracking-widest"
             style={{ color: 'var(--color-text-secondary)' }}
           >
-            © {new Date().getFullYear()} Marco Niccolini
+            © {CURRENT_YEAR} Marco Niccolini
           </span>
           <span
             className="font-mono text-[11px] uppercase tracking-widest"

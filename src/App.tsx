@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import { HashRouter } from 'react-router-dom';
 import { ThemeProvider } from './context/ThemeContext';
 import { useLenis } from './hooks/useLenis';
@@ -18,18 +18,18 @@ function App() {
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
 
-  const handleProjectSelect = (project: Project) => {
+  const handleProjectSelect = useCallback((project: Project) => {
     setSelectedProject(project);
     setIsSheetOpen(true);
-  };
+  }, []);
 
-  const handleCloseSheet = () => {
+  const handleCloseSheet = useCallback(() => {
     setIsSheetOpen(false);
-  };
+  }, []);
 
-  const handleLoaderComplete = () => {
+  const handleLoaderComplete = useCallback(() => {
     setLoading(false);
-  };
+  }, []);
 
   return (
     <ThemeProvider>

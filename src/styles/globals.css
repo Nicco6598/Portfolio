@@ -80,6 +80,52 @@
   font-family: var(--font-mono);
 }
 
+.radial-hover-surface {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  color: var(--radial-text, var(--color-text-primary));
+  transition:
+    color 0.25s ease,
+    border-color 0.25s ease,
+    background-color 0.25s ease,
+    opacity 0.2s ease,
+    transform 0.2s ease;
+}
+
+.radial-hover-surface:hover,
+.radial-hover-surface:focus-visible {
+  color: var(--radial-text-hover, #FFFFFF);
+  border-color: var(--radial-fill, var(--color-accent));
+}
+
+.radial-hover-fill {
+  position: absolute;
+  inset: 0;
+  display: block;
+  z-index: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background: var(--radial-fill, var(--color-accent));
+  opacity: 0;
+  will-change: clip-path, opacity;
+}
+
+.radial-hover-content {
+  position: relative;
+  z-index: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .radial-hover-surface {
+    transition: none;
+  }
+
+  .radial-hover-fill {
+    display: none;
+  }
+}
+
 ::-webkit-scrollbar {
   width: 8px;
 }

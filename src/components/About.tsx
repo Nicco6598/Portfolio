@@ -3,6 +3,7 @@ const ABOUT_TEXT = `Full-Stack Software Developer with hands-on experience build
 Currently working as a Freelance Full-Stack Developer, handling complete rebuilds of corporate websites with React + Vite, achieving Lighthouse scores of 95+. Building custom admin panels with full CRUD functionality for content management, job postings, and team profiles. Architecting full-stack apps with Next.js App Router and Server Actions, using PostgreSQL via Drizzle ORM with type-safe queries, data validation with Zod, and React Hook Form.
 
 Previously at Capgemini Engineering as Associate Product Software Engineer, where I built responsive interfaces for a blockchain mobility dApp using React, TypeScript, and Tailwind CSS, optimizing Core Web Vitals and integrating OpenSea APIs to reduce load times by 20%.`;
+const ABOUT_PARAGRAPHS = ABOUT_TEXT.split('\n\n');
 
 const SKILLS = [
   'React', 'Next.js', 'Vite', 'TypeScript', 'JavaScript',
@@ -32,7 +33,7 @@ export default function About() {
           A bit about me
         </h2>
         <div className="space-y-6 mb-10">
-          {ABOUT_TEXT.split('\n\n').map((paragraph, index) => (
+          {ABOUT_PARAGRAPHS.map((paragraph, index) => (
             <p
               key={index}
               className="text-base leading-relaxed"
