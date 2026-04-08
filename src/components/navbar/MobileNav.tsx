@@ -29,7 +29,7 @@ function MobileNavActionLink({ href, label, tone, onSelect }: MobileNavActionLin
       target="_blank"
       rel="noopener noreferrer"
       onClick={onSelect}
-      className={`radial-hover-surface group flex min-h-[88px] flex-col justify-between rounded-[24px] border p-4 ${canHover ? 'hover:-translate-y-0.5' : ''}`.trim()}
+      className={`radial-hover-surface group flex min-h-[70px] flex-col justify-between rounded-[22px] border px-3.5 py-3 ${canHover ? 'hover:-translate-y-0.5' : ''}`.trim()}
       style={{
         ['--radial-fill' as string]: 'var(--color-accent)',
         ['--radial-text' as string]: tone === 'accent' ? 'var(--color-text-primary)' : 'var(--color-text-secondary)',
@@ -41,12 +41,12 @@ function MobileNavActionLink({ href, label, tone, onSelect }: MobileNavActionLin
       <span data-radial-fill className="radial-hover-fill" />
       <span className="radial-hover-content flex h-full flex-col justify-between">
         <span
-          className="font-mono text-[9px] uppercase tracking-[0.22em]"
+          className="font-mono text-[8px] uppercase tracking-[0.22em]"
           style={{ color: tone === 'accent' ? 'var(--color-accent)' : 'var(--color-text-secondary)' }}
         >
           Resource
         </span>
-        <span className="font-mono text-[11px] uppercase tracking-[0.16em]">
+        <span className="font-mono text-[10px] uppercase tracking-[0.14em]">
           {label}
         </span>
       </span>
@@ -77,11 +77,13 @@ function MobileNavComponent({ activeSection, onClose, onNavigate }: MobileNavPro
         animate={{ opacity: 1, y: 0, scale: 1 }}
         exit={{ opacity: 0, y: -16, scale: 0.98 }}
         transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
-        className="fixed inset-x-4 bottom-4 top-[5.5rem] z-20 overflow-hidden rounded-[32px] border md:hidden"
+        className="fixed inset-x-3 bottom-3 top-[5.25rem] z-20 overflow-hidden rounded-[28px] border md:hidden"
         style={{
           backgroundColor: 'color-mix(in srgb, var(--color-bg) 90%, rgba(255,255,255,0.35) 10%)',
           borderColor: 'var(--color-border)',
           boxShadow: '0 22px 60px rgba(10,10,10,0.16)',
+          willChange: 'transform, opacity',
+          transform: 'translateZ(0)',
         }}
       >
         <div
@@ -91,8 +93,8 @@ function MobileNavComponent({ activeSection, onClose, onNavigate }: MobileNavPro
           }}
         />
 
-        <div className="relative flex h-full flex-col overflow-y-auto px-5 pb-5 pt-5">
-          <div className="mb-6 flex items-start justify-between gap-4">
+        <div className="relative flex h-full flex-col px-4 pb-4 pt-4 sm:px-5 sm:pb-5 sm:pt-5">
+          <div className="mb-4 flex items-start justify-between gap-4">
             <div>
               <span
                 className="block font-mono text-[10px] uppercase tracking-[0.24em]"
@@ -101,7 +103,7 @@ function MobileNavComponent({ activeSection, onClose, onNavigate }: MobileNavPro
                 Navigation
               </span>
               <p
-                className="mt-2 max-w-[14rem] text-sm leading-6"
+                className="mt-1.5 max-w-[13rem] text-[13px] leading-5"
                 style={{ color: 'var(--color-text-secondary)' }}
               >
                 Jump through the portfolio, grab the CV, or switch the site appearance.
@@ -109,7 +111,7 @@ function MobileNavComponent({ activeSection, onClose, onNavigate }: MobileNavPro
             </div>
 
             <span
-              className="rounded-full border px-3 py-1 font-mono text-[10px] uppercase tracking-[0.18em]"
+              className="rounded-full border px-2.5 py-1 font-mono text-[9px] uppercase tracking-[0.18em]"
               style={{
                 borderColor: 'var(--color-border)',
                 color: 'var(--color-text-secondary)',
@@ -120,67 +122,76 @@ function MobileNavComponent({ activeSection, onClose, onNavigate }: MobileNavPro
             </span>
           </div>
 
-          <ul className="grid gap-3">
-            {NAV_ITEMS.map((link, index) => {
-              const isActive = activeSection === link.sectionId;
-              const displayLabel = isActive ? `{${link.label.toLowerCase()}}` : link.label;
+          <div className="flex flex-1 flex-col justify-between gap-4">
+            <ul className="grid gap-2.5">
+              {NAV_ITEMS.map((link, index) => {
+                const isActive = activeSection === link.sectionId;
 
-              return (
-                <li key={link.label}>
-                  <a
-                    href={link.href}
-                    onClick={(event) => {
-                      if (onNavigate) {
-                        event.preventDefault();
-                        onNavigate(link.sectionId);
-                      }
+                return (
+                  <li key={link.label}>
+                    <a
+                      href={link.href}
+                      onClick={(event) => {
+                        if (onNavigate) {
+                          event.preventDefault();
+                          onNavigate(link.sectionId);
+                        }
 
-                      onClose();
-                    }}
-                    className={`group flex items-center justify-between rounded-[24px] border px-4 py-4 transition-transform duration-200 ${canHover ? 'hover:-translate-y-0.5' : ''}`.trim()}
-                    style={{
-                      borderColor: isActive ? 'var(--color-accent)' : 'var(--color-border)',
-                      backgroundColor: isActive ? 'color-mix(in srgb, var(--color-accent) 10%, var(--color-surface) 90%)' : 'var(--color-surface)',
-                    }}
-                  >
-                    <span
-                      className="font-mono text-[10px] uppercase tracking-[0.22em]"
-                      style={{ color: isActive ? 'var(--color-accent)' : 'var(--color-text-secondary)' }}
+                        onClose();
+                      }}
+                      className={`group flex min-h-[68px] items-center justify-between rounded-[22px] border px-3.5 py-3 transition-transform duration-200 ${canHover ? 'hover:-translate-y-0.5' : ''}`.trim()}
+                      style={{
+                        borderColor: isActive ? 'var(--color-accent)' : 'var(--color-border)',
+                        backgroundColor: isActive ? 'color-mix(in srgb, var(--color-accent) 10%, var(--color-surface) 90%)' : 'var(--color-surface)',
+                      }}
                     >
-                      0{index + 1}
-                    </span>
-                    <span
-                      className="font-serif-display text-[30px] leading-none"
-                      style={{ color: 'var(--color-text-primary)' }}
-                    >
-                      {displayLabel}
-                    </span>
-                    <span
-                      className="font-mono text-[11px] uppercase tracking-[0.18em]"
-                      style={{ color: isActive ? 'var(--color-accent)' : 'var(--color-text-secondary)' }}
-                    >
-                      Go
-                    </span>
-                  </a>
-                </li>
-              );
-            })}
-          </ul>
+                      <span
+                        className="w-8 shrink-0 font-mono text-[9px] uppercase tracking-[0.2em]"
+                        style={{ color: isActive ? 'var(--color-accent)' : 'var(--color-text-secondary)' }}
+                      >
+                        0{index + 1}
+                      </span>
+                      <span
+                        className="min-w-0 flex-1 px-3 text-center font-serif-display text-[clamp(1.6rem,8vw,2.1rem)] leading-none"
+                        style={{ color: isActive ? 'var(--color-accent)' : 'var(--color-text-primary)' }}
+                      >
+                        {isActive ? (
+                          <>
+                            <span>{'{'}</span>
+                            <span>{link.label.toLowerCase()}</span>
+                            <span>{'}'}</span>
+                          </>
+                        ) : (
+                          link.label
+                        )}
+                      </span>
+                      <span
+                        className="w-8 shrink-0 text-right font-mono text-[10px] uppercase tracking-[0.16em]"
+                        style={{ color: isActive ? 'var(--color-accent)' : 'var(--color-text-secondary)' }}
+                      >
+                        Go
+                      </span>
+                    </a>
+                  </li>
+                );
+              })}
+            </ul>
 
-          <div className="mt-6 grid gap-3 sm:grid-cols-2">
-            {CV_OPTIONS.map((option) => (
-              <MobileNavActionLink
-                key={option.shortLabel}
-                href={option.href}
-                label={option.shortLabel}
-                tone={option.tone}
-                onSelect={onClose}
-              />
-            ))}
-          </div>
+            <div className="grid gap-3">
+              <div className="grid gap-2.5 sm:grid-cols-2">
+                {CV_OPTIONS.map((option) => (
+                  <MobileNavActionLink
+                    key={option.shortLabel}
+                    href={option.href}
+                    label={option.shortLabel}
+                    tone={option.tone}
+                    onSelect={onClose}
+                  />
+                ))}
+              </div>
 
-          <div className="mt-6">
-            <ThemeToggle fullWidth />
+              <ThemeToggle fullWidth />
+            </div>
           </div>
         </div>
       </motion.div>

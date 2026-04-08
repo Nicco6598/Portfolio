@@ -158,6 +158,41 @@
   transition: color 0.42s ease;
 }
 
+.desktop-nav-link {
+  color: var(--desktop-nav-link-color, var(--color-text-secondary));
+  transition: color 220ms ease;
+}
+
+.desktop-nav-link-label {
+  display: inline-block;
+  transition:
+    color 220ms ease,
+    opacity 220ms ease,
+    transform 220ms ease;
+}
+
+.theme-toggle-label-slot {
+  position: relative;
+  display: inline-grid;
+  width: 7ch;
+  place-items: center;
+}
+
+.theme-toggle-label {
+  grid-area: 1 / 1;
+  white-space: nowrap;
+  opacity: 0;
+  transform: translateY(2px);
+  transition:
+    opacity 220ms ease,
+    transform 220ms ease;
+}
+
+.theme-toggle-label.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
 @media (prefers-reduced-motion: reduce) {
   .radial-hover-surface {
     transition: none;
@@ -165,6 +200,24 @@
 
   .radial-hover-fill {
     display: none;
+  }
+
+  .desktop-nav-link,
+  .desktop-nav-link-label,
+  .theme-toggle-label {
+    transition: none;
+  }
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .desktop-nav-link:hover,
+  .desktop-nav-link:focus-visible {
+    color: var(--desktop-nav-link-hover-color, var(--color-text-primary));
+  }
+
+  .desktop-nav-link:hover .desktop-nav-link-label,
+  .desktop-nav-link:focus-visible .desktop-nav-link-label {
+    transform: translateY(-1px);
   }
 }
 

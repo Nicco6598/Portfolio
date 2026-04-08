@@ -1,4 +1,4 @@
-import { memo } from 'react';
+import { memo, type CSSProperties } from 'react';
 import { NAV_ITEMS } from '../../config/site';
 import ThemeToggle from '../ThemeToggle';
 import CvDropdown from './CvDropdown';
@@ -14,7 +14,6 @@ function DesktopNavComponent({ activeSection, onNavigate }: DesktopNavProps) {
       <ul className="flex items-center gap-1">
         {NAV_ITEMS.map((link) => {
           const isActive = activeSection === link.sectionId;
-          const displayLabel = isActive ? `{${link.label.toLowerCase()}}` : link.label;
 
           return (
             <li key={link.label}>
@@ -26,10 +25,21 @@ function DesktopNavComponent({ activeSection, onNavigate }: DesktopNavProps) {
                     onNavigate(link.sectionId);
                   }
                 }}
-                className="font-mono text-[11px] uppercase tracking-[0.15em] px-3 py-2 transition-colors duration-200"
-                style={{ color: isActive ? 'var(--color-accent)' : 'var(--color-text-secondary)' }}
+                className="desktop-nav-link group px-3 py-2 font-mono text-[11px] uppercase tracking-[0.15em]"
+                style={{
+                  ['--desktop-nav-link-color' as string]: isActive ? 'var(--color-accent)' : 'var(--color-text-secondary)',
+                  ['--desktop-nav-link-hover-color' as string]: isActive ? 'var(--color-accent)' : 'var(--color-text-primary)',
+                } as CSSProperties}
               >
-                {displayLabel}
+                {isActive ? (
+                  <span className="desktop-nav-link-label">
+                    <span>{'{'}</span>
+                    <span>{link.label.toLowerCase()}</span>
+                    <span>{'}'}</span>
+                  </span>
+                ) : (
+                  <span className="desktop-nav-link-label">{link.label}</span>
+                )}
               </a>
             </li>
           );

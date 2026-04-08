@@ -1,10 +1,19 @@
 import { useEffect, useRef, useState } from 'react';
 
-export function useScrollThreshold(threshold: number) {
+interface UseScrollThresholdOptions {
+  freeze?: boolean;
+}
+
+export function useScrollThreshold(threshold: number, options: UseScrollThresholdOptions = {}) {
+  const { freeze = false } = options;
   const [isPastThreshold, setIsPastThreshold] = useState(false);
   const valueRef = useRef(false);
 
   useEffect(() => {
+    if (freeze) {
+      return;
+    }
+
     let frameId = 0;
 
     const updateValue = () => {
@@ -37,7 +46,7 @@ export function useScrollThreshold(threshold: number) {
 
       window.removeEventListener('scroll', handleScroll);
     };
-  }, [threshold]);
+  }, [freeze, threshold]);
 
   return isPastThreshold;
 }
