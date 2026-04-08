@@ -2,9 +2,11 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import gsap from 'gsap';
 import { projects } from '../data/projects';
 import type { Project } from '../data/projects';
+import { useCanHover } from '../hooks/useCanHover';
 import { usePointerPreviewPosition } from '../hooks/usePointerPreviewPosition';
 import HeroProjectList from './hero/HeroProjectList';
 import HeroProjectPreview from './hero/HeroProjectPreview';
+import HeroProjectSummary from './hero/HeroProjectSummary';
 import Ticker from './Ticker';
 
 const DEVELOPER_NAME = "Marco Niccolini";
@@ -23,11 +25,13 @@ export default function Hero({ onProjectSelect, isReady }: HeroProps) {
   const taglineRef = useRef<HTMLParagraphElement>(null);
   const projectListRef = useRef<HTMLDivElement>(null);
   const tickerRef = useRef<HTMLDivElement>(null);
+  const canHover = useCanHover();
   const [activeProject, setActiveProject] = useState<Project>(projects[0]);
   const [hoveredProject, setHoveredProject] = useState<Project | null>(null);
-  const { previewRef, setPointerPosition } = usePointerPreviewPosition(Boolean(hoveredProject), PREVIEW_OFFSET_X, PREVIEW_OFFSET_Y);
+  const previewProject = canHover ? hoveredProject : null;
+  const { previewRef, setPointerPosition } = usePointerPreviewPosition(Boolean(previewProject), PREVIEW_OFFSET_X, PREVIEW_OFFSET_Y);
 
-  const displayProject = hoveredProject || activeProject;
+  const displayProject = previewProject || activeProject;
 
   const handleProjectSelect = useCallback((project: Project) => {
     setActiveProject(project);
@@ -35,9 +39,13 @@ export default function Hero({ onProjectSelect, isReady }: HeroProps) {
   }, [onProjectSelect]);
 
   const handleProjectHover = useCallback((project: Project, clientX: number, clientY: number) => {
+    if (!canHover) {
+      return;
+    }
+
     setPointerPosition(clientX, clientY);
     setHoveredProject(project);
-  }, [setPointerPosition]);
+  }, [canHover, setPointerPosition]);
 
   const handleProjectLeave = useCallback(() => {
     setHoveredProject(null);
@@ -112,23 +120,23 @@ export default function Hero({ onProjectSelect, isReady }: HeroProps) {
     <section
       ref={heroRef}
       id="works"
-      className="relative flex h-[100dvh] flex-col overflow-hidden"
+      className="relative flex min-h-[100dvh] flex-col overflow-clip md:h-[100dvh]"
     >
-      <HeroProjectPreview project={hoveredProject} previewRef={previewRef} />
+      <HeroProjectPreview project={previewProject} previewRef={previewRef} />
 
-      <div className="mx-auto flex min-h-0 w-full max-w-7xl flex-1 px-6 pt-24 md:px-12 md:pt-28 lg:pt-32">
-        <div className="grid h-full min-h-0 gap-10 md:grid-cols-[60%_40%] md:gap-12">
-          <div className="flex min-h-0 flex-col justify-center">
+      <div className="mx-auto flex w-full max-w-7xl flex-1 px-6 pb-8 pt-24 md:min-h-0 md:px-12 md:pb-0 md:pt-28 lg:pt-32">
+        <div className="grid w-full content-start gap-12 md:h-full md:min-h-0 md:grid-cols-[60%_40%] md:content-stretch md:gap-12">
+          <div className="flex min-h-0 flex-col justify-start pt-4 md:justify-center md:pt-0">
             <h1
               ref={headingRef}
-              className="font-serif-display text-[clamp(72px,10vw,140px)] leading-[0.9] mb-6"
+              className="mb-6 font-serif-display text-[clamp(56px,16vw,140px)] leading-[0.9]"
               style={{ color: 'var(--color-text-primary)' }}
             >
               {DEVELOPER_NAME}
             </h1>
             <p
               ref={taglineRef}
-              className="text-base max-w-[480px]"
+              className="max-w-[540px] text-base leading-7"
               style={{ color: 'var(--color-text-secondary)' }}
             >
               {TAGLINE}
@@ -137,7 +145,7 @@ export default function Hero({ onProjectSelect, isReady }: HeroProps) {
 
           <div
             ref={projectListRef}
-            className="flex min-h-0 flex-col justify-center md:pt-4"
+            className="flex min-h-0 flex-col justify-start md:justify-center md:pt-4"
           >
             <span
               className="font-mono text-[11px] uppercase tracking-widest block mb-6"
@@ -146,11 +154,18 @@ export default function Hero({ onProjectSelect, isReady }: HeroProps) {
               Selected Projects
             </span>
             <HeroProjectList
+              canHover={canHover}
               displayProject={displayProject}
               onProjectSelect={handleProjectSelect}
               onProjectHover={handleProjectHover}
               onProjectLeave={handleProjectLeave}
             />
+
+            {!canHover ? (
+              <div className="mt-6 md:hidden">
+                <HeroProjectSummary project={activeProject} />
+              </div>
+            ) : null}
           </div>
         </div>
       </div>

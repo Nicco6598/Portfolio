@@ -17,8 +17,12 @@ export function useRadialHover<T extends HTMLElement>(enabled = true) {
     }
 
     const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const canHover = window.matchMedia('(hover: hover) and (pointer: fine)');
 
-    if (reduceMotion.matches) {
+    if (reduceMotion.matches || !canHover.matches) {
+      gsap.set(fill, {
+        clearProps: 'clipPath,opacity',
+      });
       return;
     }
 
@@ -95,6 +99,7 @@ export function useRadialHover<T extends HTMLElement>(enabled = true) {
     element.addEventListener('pointerleave', handlePointerLeave);
 
     return () => {
+      gsap.killTweensOf(fill);
       element.removeEventListener('pointerenter', handlePointerEnter);
       element.removeEventListener('pointermove', handlePointerMove);
       element.removeEventListener('pointerleave', handlePointerLeave);

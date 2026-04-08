@@ -1,6 +1,7 @@
 import { memo } from 'react';
 import { projectCountLabel, projects } from '../data/projects';
 import type { Project } from '../data/projects';
+import { useCanHover } from '../hooks/useCanHover';
 import ProjectVisual from './projects/ProjectVisual';
 
 interface ProjectListProps {
@@ -8,6 +9,8 @@ interface ProjectListProps {
 }
 
 function ProjectListComponent({ onProjectSelect }: ProjectListProps) {
+  const canHover = useCanHover();
+
   return (
     <section className="py-24 px-6 md:px-12" style={{ backgroundColor: 'var(--color-bg)' }}>
       <div className="max-w-7xl mx-auto">
@@ -29,7 +32,7 @@ function ProjectListComponent({ onProjectSelect }: ProjectListProps) {
             <button
               key={project.id}
               onClick={() => onProjectSelect(project)}
-              className="text-left group p-4 rounded-2xl transition-all duration-300 hover:scale-[1.02]"
+              className={`group rounded-2xl p-4 text-left transition-all duration-300 ${canHover ? 'hover:scale-[1.02]' : ''}`.trim()}
               style={{
                 backgroundColor: 'var(--color-surface)',
                 border: '1px solid var(--color-border)',
@@ -42,7 +45,7 @@ function ProjectListComponent({ onProjectSelect }: ProjectListProps) {
                 <ProjectVisual
                   project={project}
                   variant="card"
-                  className="w-full h-full transition-transform duration-300 group-hover:scale-105"
+                  className={`h-full w-full transition-transform duration-300 ${canHover ? 'group-hover:scale-105' : ''}`.trim()}
                   imageClassName="w-full h-full object-cover"
                 />
               </div>
@@ -53,7 +56,7 @@ function ProjectListComponent({ onProjectSelect }: ProjectListProps) {
                 {project.index} / {projectCountLabel}
               </span>
               <h3
-                className="font-serif-display text-[24px] mb-2 group-hover:text-[var(--color-accent)] transition-colors duration-200"
+                className={`mb-2 font-serif-display text-[24px] transition-colors duration-200 ${canHover ? 'group-hover:text-[var(--color-accent)]' : ''}`.trim()}
                 style={{ color: 'var(--color-text-primary)' }}
               >
                 {project.name}

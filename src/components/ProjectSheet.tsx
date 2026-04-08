@@ -2,6 +2,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import type { CSSProperties, ReactNode } from 'react';
 import type { Project } from '../data/projects';
 import { useBodyScrollLock } from '../hooks/useBodyScrollLock';
+import { useCanHover } from '../hooks/useCanHover';
 import { useEscapeKey } from '../hooks/useEscapeKey';
 import { useRadialHover } from '../hooks/useRadialHover';
 import { getProjectAccent } from '../utils/project-display';
@@ -19,6 +20,7 @@ interface ProjectSheetSectionProps {
 }
 
 interface ProjectSheetLinkProps {
+  canHover: boolean;
   href: string;
   label: string;
   accent: string;
@@ -50,12 +52,13 @@ function ProjectSheetSection({ label, children }: ProjectSheetSectionProps) {
 }
 
 function ProjectSheetLink({
+  canHover,
   href,
   label,
   accent,
   variant,
 }: ProjectSheetLinkProps) {
-  const linkRef = useRadialHover<HTMLAnchorElement>();
+  const linkRef = useRadialHover<HTMLAnchorElement>(canHover);
   const isPrimary = variant === 'primary';
 
   return (
@@ -64,7 +67,7 @@ function ProjectSheetLink({
       href={href}
       target="_blank"
       rel="noopener noreferrer"
-      className="radial-hover-surface group inline-flex items-center justify-between gap-4 rounded-full border px-5 py-3 font-mono text-[11px] uppercase tracking-[0.28em] hover:-translate-y-0.5"
+      className={`radial-hover-surface group inline-flex items-center justify-between gap-4 rounded-full border px-5 py-3 font-mono text-[11px] uppercase tracking-[0.28em] ${canHover ? 'hover:-translate-y-0.5' : ''}`.trim()}
       style={{
         ['--radial-fill' as string]: accent,
         ['--radial-text' as string]: 'var(--color-text-primary)',
@@ -210,9 +213,11 @@ function ProjectSheetMainContent({
 }
 
 function ProjectSheetSidebar({
+  canHover,
   project,
   accent,
 }: {
+  canHover: boolean;
   project: Project;
   accent: string;
 }) {
@@ -308,6 +313,7 @@ function ProjectSheetSidebar({
       <div className="mt-8 flex flex-col gap-3">
         {project.liveUrl ? (
           <ProjectSheetLink
+            canHover={canHover}
             href={project.liveUrl}
             label="View live"
             accent={accent}
@@ -316,6 +322,7 @@ function ProjectSheetSidebar({
         ) : null}
         {project.githubUrl ? (
           <ProjectSheetLink
+            canHover={canHover}
             href={project.githubUrl}
             label="View code"
             accent={accent}
@@ -334,7 +341,8 @@ export default function ProjectSheet({
 }: ProjectSheetProps) {
   useBodyScrollLock(isOpen);
   useEscapeKey(isOpen, onClose);
-  const closeButtonRef = useRadialHover<HTMLButtonElement>(isOpen);
+  const canHover = useCanHover();
+  const closeButtonRef = useRadialHover<HTMLButtonElement>(isOpen && canHover);
 
   const accent = project ? getProjectAccent(project.id) : null;
 
@@ -390,7 +398,7 @@ export default function ProjectSheet({
               <button
                 ref={closeButtonRef}
                 onClick={onClose}
-                className="radial-hover-surface group fixed right-6 top-6 z-20 rounded-full border px-4 py-2 font-mono text-[11px] uppercase tracking-[0.28em] transition-transform duration-200 hover:-translate-y-0.5 md:right-10 md:top-8"
+                className={`radial-hover-surface group fixed right-6 top-6 z-20 rounded-full border px-4 py-2 font-mono text-[11px] uppercase tracking-[0.28em] transition-transform duration-200 md:right-10 md:top-8 ${canHover ? 'hover:-translate-y-0.5' : ''}`.trim()}
                 style={{
                   ['--radial-fill' as string]: accent,
                   ['--radial-text' as string]: 'var(--color-text-primary)',
@@ -414,7 +422,7 @@ export default function ProjectSheet({
                 className="relative mx-auto max-w-7xl px-6 pb-16 pt-24 md:px-12 md:pb-20 md:pt-28"
               >
                 <div className="grid gap-12 lg:grid-cols-[minmax(320px,0.92fr)_minmax(0,1.08fr)] lg:gap-16">
-                  <ProjectSheetSidebar project={project} accent={accent} />
+                  <ProjectSheetSidebar canHover={canHover} project={project} accent={accent} />
                   <ProjectSheetMainContent project={project} accent={accent} />
                 </div>
               </motion.div>

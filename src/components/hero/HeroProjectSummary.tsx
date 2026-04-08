@@ -7,8 +7,14 @@ interface HeroProjectSummaryProps {
 
 function HeroProjectSummaryComponent({ project }: HeroProjectSummaryProps) {
   return (
-    <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4 px-6 py-4 md:px-12 md:py-5">
-      <div className="flex items-center gap-6">
+    <div
+      className="flex flex-col gap-5 rounded-[28px] border p-5"
+      style={{
+        borderColor: 'var(--color-border)',
+        backgroundColor: 'var(--color-surface)',
+      }}
+    >
+      <div className="flex flex-wrap items-center gap-4">
         <span
           className="font-mono text-[13px] uppercase tracking-widest"
           style={{ color: 'var(--color-text-secondary)' }}
@@ -16,13 +22,21 @@ function HeroProjectSummaryComponent({ project }: HeroProjectSummaryProps) {
           {project.index} / {projectCountLabel}
         </span>
         <span
-          className="font-serif-display text-[24px] md:text-[32px]"
+          className="font-serif-display text-[26px] leading-none"
           style={{ color: 'var(--color-text-primary)' }}
         >
           {project.name}
         </span>
       </div>
-      <div className="flex gap-2">
+
+      <p
+        className="text-sm leading-6"
+        style={{ color: 'var(--color-text-secondary)' }}
+      >
+        {project.tagline}
+      </p>
+
+      <div className="flex flex-wrap gap-2">
         {project.tags.slice(0, 4).map((tag) => (
           <span
             key={tag}

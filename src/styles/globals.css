@@ -116,10 +116,16 @@
     transform 0.32s ease;
 }
 
-.radial-hover-surface:hover,
 .radial-hover-surface:focus-visible {
   color: var(--radial-text-hover, #FFFFFF);
   border-color: var(--radial-fill, var(--color-accent));
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .radial-hover-surface:hover {
+    color: var(--radial-text-hover, #FFFFFF);
+    border-color: var(--radial-fill, var(--color-accent));
+  }
 }
 
 .radial-hover-fill {
@@ -280,6 +286,8 @@ body::-webkit-scrollbar-thumb:hover {
   transition: transform 0.3s ease;
 }
 
-.link-underline:hover::after {
-  transform: scaleX(1);
+@media (hover: hover) and (pointer: fine) {
+  .link-underline:hover::after {
+    transform: scaleX(1);
+  }
 }

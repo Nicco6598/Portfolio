@@ -3,6 +3,7 @@ import { projects } from '../../data/projects';
 import type { Project } from '../../data/projects';
 
 interface HeroProjectListProps {
+  canHover: boolean;
   displayProject: Project;
   onProjectSelect: (project: Project) => void;
   onProjectHover: (project: Project, clientX: number, clientY: number) => void;
@@ -10,6 +11,7 @@ interface HeroProjectListProps {
 }
 
 function HeroProjectListComponent({
+  canHover,
   displayProject,
   onProjectSelect,
   onProjectHover,
@@ -21,9 +23,9 @@ function HeroProjectListComponent({
         <button
           key={project.id}
           onClick={() => onProjectSelect(project)}
-          onMouseEnter={(event) => onProjectHover(project, event.clientX, event.clientY)}
-          onMouseLeave={onProjectLeave}
-          className="group w-full border-b py-4 text-left transition-all duration-200 hover:translate-x-1.5"
+          onMouseEnter={canHover ? (event) => onProjectHover(project, event.clientX, event.clientY) : undefined}
+          onMouseLeave={canHover ? onProjectLeave : undefined}
+          className={`group w-full border-b py-4 text-left transition-all duration-200 ${canHover ? 'hover:translate-x-1.5' : ''}`.trim()}
           style={{
             borderColor: 'var(--color-border)',
             color: 'var(--color-text-primary)',

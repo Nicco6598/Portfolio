@@ -1,9 +1,10 @@
 import { CURRENT_YEAR, EMAIL, SOCIAL_LINKS } from '../config/site';
+import { useCanHover } from '../hooks/useCanHover';
 
-function SocialArrow() {
+function SocialArrow({ canHover }: { canHover: boolean }) {
   return (
-    <span className="overflow-hidden transition-transform duration-200 group-hover:translate-x-1">
-      <svg className="w-4 h-4 transition-colors duration-200 group-hover:text-[var(--color-accent)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <span className={`overflow-hidden transition-transform duration-200 ${canHover ? 'group-hover:translate-x-1' : ''}`.trim()}>
+      <svg className={`h-4 w-4 transition-colors duration-200 ${canHover ? 'group-hover:text-[var(--color-accent)]' : ''}`.trim()} fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
       </svg>
     </span>
@@ -11,6 +12,8 @@ function SocialArrow() {
 }
 
 export default function Contact() {
+  const canHover = useCanHover();
+
   return (
     <section
       id="contact"
@@ -56,8 +59,8 @@ export default function Contact() {
                 className="group inline-flex items-center gap-2 font-mono text-[12px] uppercase tracking-widest"
                 style={{ color: 'var(--color-text-secondary)' }}
               >
-                <span className="transition-colors duration-200 group-hover:text-[var(--color-accent)]">{link.label}</span>
-                <SocialArrow />
+                <span className={`transition-colors duration-200 ${canHover ? 'group-hover:text-[var(--color-accent)]' : ''}`.trim()}>{link.label}</span>
+                <SocialArrow canHover={canHover} />
               </a>
             ))}
           </div>

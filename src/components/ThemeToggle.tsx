@@ -23,7 +23,7 @@ export default function ThemeToggle() {
     >
       <span data-radial-fill className="radial-hover-fill" />
       <span className="radial-hover-content flex items-center justify-center gap-1">
-        <span className="transition-colors duration-200 group-hover:text-current">●</span>
+        <span className="transition-colors duration-200">●</span>
         <span className="w-3">{theme === 'light' ? 'L' : 'D'}</span>
       </span>
     </button>

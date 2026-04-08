@@ -2,6 +2,7 @@ import { useCallback, useState, type CSSProperties } from 'react';
 import { AnimatePresence } from 'framer-motion';
 import { SECTION_IDS, SITE_NAME } from '../config/site';
 import { useActiveSection } from '../hooks/useActiveSection';
+import { useCanHover } from '../hooks/useCanHover';
 import { useEscapeKey } from '../hooks/useEscapeKey';
 import { useRadialHover } from '../hooks/useRadialHover';
 import { useScrollThreshold } from '../hooks/useScrollThreshold';
@@ -14,7 +15,8 @@ interface NavbarProps {
 
 export default function Navbar({ onNavigate }: NavbarProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const mobileTriggerRef = useRadialHover<HTMLButtonElement>();
+  const canHover = useCanHover();
+  const mobileTriggerRef = useRadialHover<HTMLButtonElement>(canHover);
   const scrolled = useScrollThreshold(60);
   const activeSection = useActiveSection(SECTION_IDS, { threshold: 0.3 });
 
@@ -37,7 +39,7 @@ export default function Navbar({ onNavigate }: NavbarProps) {
       <div className="max-w-7xl mx-auto flex items-center justify-between">
         <a
           href="#"
-          className="flex items-center gap-2 font-mono text-[12px] uppercase tracking-widest transition-opacity hover:opacity-70 z-50 relative"
+          className={`relative z-50 flex items-center gap-2 font-mono text-[12px] uppercase tracking-widest transition-opacity ${canHover ? 'hover:opacity-70' : ''}`.trim()}
           style={{ color: 'var(--color-text-primary)' }}
         >
           <div
