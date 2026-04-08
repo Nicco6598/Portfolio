@@ -28,10 +28,10 @@ function MobileNavActionLink({ href, label, tone }: MobileNavActionLinkProps) {
       className="radial-hover-surface group rounded-full border px-4 py-2 font-mono text-[11px] uppercase tracking-widest"
       style={{
         ['--radial-fill' as string]: 'var(--color-accent)',
-        ['--radial-text' as string]: tone === 'accent' ? 'var(--color-accent)' : 'var(--color-text-secondary)',
+        ['--radial-text' as string]: tone === 'accent' ? 'var(--color-text-primary)' : 'var(--color-text-secondary)',
         ['--radial-text-hover' as string]: '#FFFFFF',
         borderColor: tone === 'accent' ? 'var(--color-accent)' : 'var(--color-border)',
-        color: tone === 'accent' ? 'var(--color-accent)' : 'var(--color-text-secondary)',
+        color: tone === 'accent' ? 'var(--color-text-primary)' : 'var(--color-text-secondary)',
       } as CSSProperties}
     >
       <span data-radial-fill className="radial-hover-fill" />

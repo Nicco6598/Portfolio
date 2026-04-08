@@ -25,10 +25,10 @@ function CvDropdownComponent() {
         className="radial-hover-surface group flex items-center gap-2 rounded-full border px-4 py-2 font-mono text-[10px] uppercase tracking-[0.15em]"
         style={{
           ['--radial-fill' as string]: 'var(--color-accent)',
-          ['--radial-text' as string]: 'var(--color-accent)',
+          ['--radial-text' as string]: 'var(--color-text-primary)',
           ['--radial-text-hover' as string]: '#FFFFFF',
           borderColor: 'var(--color-accent)',
-          color: 'var(--color-accent)',
+          color: 'var(--color-text-primary)',
         } as CSSProperties}
         aria-expanded={isOpen}
       >

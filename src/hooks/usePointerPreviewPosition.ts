@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useRef } from 'react';
 
+const VIEWPORT_PADDING = 16;
+
 export function usePointerPreviewPosition(
   isEnabled: boolean,
   offsetX: number,
@@ -26,7 +28,16 @@ export function usePointerPreviewPosition(
       }
 
       const { x, y } = pointerRef.current;
-      previewRef.current.style.transform = `translate3d(${x + offsetX}px, ${y + offsetY}px, 0)`;
+      const previewWidth = previewRef.current.offsetWidth;
+      const previewHeight = previewRef.current.offsetHeight;
+      const nextX = x + offsetX;
+      const nextY = y + offsetY;
+      const maxX = window.innerWidth - previewWidth - VIEWPORT_PADDING;
+      const maxY = window.innerHeight - previewHeight - VIEWPORT_PADDING;
+      const clampedX = Math.min(Math.max(VIEWPORT_PADDING, nextX), Math.max(VIEWPORT_PADDING, maxX));
+      const clampedY = Math.min(Math.max(VIEWPORT_PADDING, nextY), Math.max(VIEWPORT_PADDING, maxY));
+
+      previewRef.current.style.transform = `translate3d(${clampedX}px, ${clampedY}px, 0)`;
     };
 
     const handlePointerMove = (event: MouseEvent) => {

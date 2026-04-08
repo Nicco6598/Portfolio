@@ -5,7 +5,6 @@ import type { Project } from '../data/projects';
 import { usePointerPreviewPosition } from '../hooks/usePointerPreviewPosition';
 import HeroProjectList from './hero/HeroProjectList';
 import HeroProjectPreview from './hero/HeroProjectPreview';
-import HeroProjectSummary from './hero/HeroProjectSummary';
 import Ticker from './Ticker';
 
 const DEVELOPER_NAME = "Marco Niccolini";
@@ -15,13 +14,15 @@ const PREVIEW_OFFSET_Y = -80;
 
 interface HeroProps {
   onProjectSelect: (project: Project) => void;
+  isReady: boolean;
 }
 
-export default function Hero({ onProjectSelect }: HeroProps) {
+export default function Hero({ onProjectSelect, isReady }: HeroProps) {
   const heroRef = useRef<HTMLDivElement>(null);
   const headingRef = useRef<HTMLHeadingElement>(null);
   const taglineRef = useRef<HTMLParagraphElement>(null);
   const projectListRef = useRef<HTMLDivElement>(null);
+  const tickerRef = useRef<HTMLDivElement>(null);
   const [activeProject, setActiveProject] = useState<Project>(projects[0]);
   const [hoveredProject, setHoveredProject] = useState<Project | null>(null);
   const { previewRef, setPointerPosition } = usePointerPreviewPosition(Boolean(hoveredProject), PREVIEW_OFFSET_X, PREVIEW_OFFSET_Y);
@@ -43,40 +44,81 @@ export default function Hero({ onProjectSelect }: HeroProps) {
   }, []);
 
   useEffect(() => {
-    const ctx = gsap.context(() => {
-      const tl = gsap.timeline({ delay: 0.5 });
+    if (!isReady) {
+      return;
+    }
 
-      tl.from(headingRef.current, {
-        y: 40,
-        opacity: 0,
-        duration: 0.8,
-        ease: 'power3.out',
-      })
-      .from(taglineRef.current, {
-        y: 40,
-        opacity: 0,
-        duration: 0.8,
-        ease: 'power3.out',
-      }, '-=0.6')
-      .from(projectListRef.current?.children || [], {
-        y: 40,
-        opacity: 0,
-        duration: 0.8,
-        ease: 'power3.out',
-        stagger: 0.1,
-      }, '-=0.6');
+    const ctx = gsap.context(() => {
+      const projectItems = projectListRef.current
+        ? Array.from(projectListRef.current.children)
+        : [];
+
+      const tl = gsap.timeline({ delay: 0.12 });
+
+      tl.fromTo(
+        headingRef.current,
+        { y: 28, opacity: 0 },
+        {
+          y: 0,
+          opacity: 1,
+          duration: 0.72,
+          ease: 'power3.out',
+          clearProps: 'transform,opacity',
+        },
+      )
+        .fromTo(
+          taglineRef.current,
+          { y: 26, opacity: 0 },
+          {
+            y: 0,
+            opacity: 1,
+            duration: 0.62,
+            ease: 'power3.out',
+            clearProps: 'transform,opacity',
+          },
+          '-=0.54',
+        )
+        .fromTo(
+          projectItems,
+          { y: 24, opacity: 0 },
+          {
+            y: 0,
+            opacity: 1,
+            duration: 0.58,
+            ease: 'power3.out',
+            stagger: 0.06,
+            clearProps: 'transform,opacity',
+          },
+          '-=0.44',
+        )
+        .fromTo(
+          tickerRef.current,
+          { y: 22, opacity: 0 },
+          {
+            y: 0,
+            opacity: 1,
+            duration: 0.54,
+            ease: 'power3.out',
+            clearProps: 'transform,opacity',
+          },
+          '-=0.36',
+        );
     }, heroRef);
 
     return () => ctx.revert();
-  }, []);
+  }, [isReady]);
 
   return (
-    <section ref={heroRef} id="works" className="h-screen flex flex-col relative">
+    <section
+      ref={heroRef}
+      id="works"
+      className="relative flex h-[100dvh] flex-col overflow-hidden"
+    >
       <HeroProjectPreview project={hoveredProject} previewRef={previewRef} />
 
-      <div className="flex-1 max-w-7xl mx-auto px-6 md:px-12 w-full pt-32">
-        <div className="grid md:grid-cols-[60%_40%] gap-12 h-full">
-          <div className="flex flex-col justify-center">
+      <div className="mx-auto flex min-h-0 w-full max-w-7xl flex-1 px-6 pt-24 md:px-12 md:pt-28 lg:pt-32">
+        <div className="grid h-full min-h-0 gap-10 md:grid-cols-[60%_40%] md:gap-12">
+          <div className="flex min-h-0 flex-col justify-center">
             <h1
               ref={headingRef}
               className="font-serif-display text-[clamp(72px,10vw,140px)] leading-[0.9] mb-6"
@@ -93,7 +135,10 @@ export default function Hero({ onProjectSelect }: HeroProps) {
             </p>
           </div>
 
-          <div ref={projectListRef} className="md:pt-4 flex flex-col justify-center">
+          <div
+            ref={projectListRef}
+            className="flex min-h-0 flex-col justify-center md:pt-4"
+          >
             <span
               className="font-mono text-[11px] uppercase tracking-widest block mb-6"
               style={{ color: 'var(--color-text-secondary)' }}
@@ -101,6 +146,7 @@ export default function Hero({ onProjectSelect }: HeroProps) {
               Selected Projects
             </span>
             <HeroProjectList
+              displayProject={displayProject}
               onProjectSelect={handleProjectSelect}
               onProjectHover={handleProjectHover}
               onProjectLeave={handleProjectLeave}
@@ -109,14 +155,9 @@ export default function Hero({ onProjectSelect }: HeroProps) {
         </div>
       </div>
 
-      <div
-        className="border-t flex-shrink-0"
-        style={{ borderColor: 'var(--color-border)', backgroundColor: 'var(--color-surface)' }}
-      >
-        <HeroProjectSummary project={displayProject} />
+      <div ref={tickerRef}>
+        <Ticker />
       </div>
-
-      <Ticker />
     </section>
   );
 }

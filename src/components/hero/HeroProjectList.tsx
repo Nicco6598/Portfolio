@@ -3,12 +3,14 @@ import { projects } from '../../data/projects';
 import type { Project } from '../../data/projects';
 
 interface HeroProjectListProps {
+  displayProject: Project;
   onProjectSelect: (project: Project) => void;
   onProjectHover: (project: Project, clientX: number, clientY: number) => void;
   onProjectLeave: () => void;
 }
 
 function HeroProjectListComponent({
+  displayProject,
   onProjectSelect,
   onProjectHover,
   onProjectLeave,
@@ -21,20 +23,21 @@ function HeroProjectListComponent({
           onClick={() => onProjectSelect(project)}
           onMouseEnter={(event) => onProjectHover(project, event.clientX, event.clientY)}
           onMouseLeave={onProjectLeave}
-          className="text-left py-4 border-b transition-all duration-200 hover:translate-x-1.5 group"
+          className="group w-full border-b py-4 text-left transition-all duration-200 hover:translate-x-1.5"
           style={{
             borderColor: 'var(--color-border)',
             color: 'var(--color-text-primary)',
           }}
         >
           <span
-            className="font-mono text-[11px] uppercase tracking-widest mr-4"
-            style={{ color: 'var(--color-text-secondary)' }}
+            className="mr-4 font-mono text-[11px] uppercase tracking-widest"
+            style={{ color: displayProject.id === project.id ? 'var(--color-accent)' : 'var(--color-text-secondary)' }}
           >
             {project.index}
           </span>
           <span
-            className="font-serif-display text-[20px] group-hover:text-[var(--color-accent)] transition-colors duration-200"
+            className="font-serif-display text-[20px] transition-colors duration-200"
+            style={{ color: displayProject.id === project.id ? 'var(--color-accent)' : 'var(--color-text-primary)' }}
           >
             {project.name}
           </span>

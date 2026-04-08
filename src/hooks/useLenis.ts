@@ -16,6 +16,8 @@ export function useLenis() {
       smoothWheel: true,
       wheelMultiplier: 1,
       touchMultiplier: 2,
+      allowNestedScroll: true,
+      prevent: (node) => node.closest('[data-lenis-prevent]') !== null,
     });
 
     let frameId = 0;

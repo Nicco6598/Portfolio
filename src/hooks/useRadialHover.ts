@@ -1,10 +1,14 @@
 import { useEffect, useRef } from 'react';
 import gsap from 'gsap';
 
-export function useRadialHover<T extends HTMLElement>() {
+export function useRadialHover<T extends HTMLElement>(enabled = true) {
   const elementRef = useRef<T | null>(null);
 
   useEffect(() => {
+    if (!enabled) {
+      return;
+    }
+
     const element = elementRef.current;
     const fill = element?.querySelector<HTMLElement>('[data-radial-fill]');
 
@@ -47,7 +51,7 @@ export function useRadialHover<T extends HTMLElement>() {
       });
       gsap.to(fill, {
         clipPath: `circle(${radius}px at ${x}px ${y}px)`,
-        duration: 0.45,
+        duration: 0.68,
         ease: 'power3.out',
       });
     };
@@ -60,7 +64,7 @@ export function useRadialHover<T extends HTMLElement>() {
       const { x, y, radius } = getCircleMetrics(event);
       gsap.to(fill, {
         clipPath: `circle(${radius}px at ${x}px ${y}px)`,
-        duration: 0.22,
+        duration: 0.34,
         ease: 'power3.out',
         overwrite: true,
       });
@@ -76,7 +80,7 @@ export function useRadialHover<T extends HTMLElement>() {
       gsap.to(fill, {
         clipPath: `circle(0px at ${x}px ${y}px)`,
         opacity: 0,
-        duration: 0.28,
+        duration: 0.42,
         ease: 'power3.out',
       });
     };
@@ -95,7 +99,7 @@ export function useRadialHover<T extends HTMLElement>() {
       element.removeEventListener('pointermove', handlePointerMove);
       element.removeEventListener('pointerleave', handlePointerLeave);
     };
-  }, []);
+  }, [enabled]);
 
   return elementRef;
 }

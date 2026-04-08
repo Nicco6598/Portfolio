@@ -26,6 +26,11 @@ interface ProjectSheetLinkProps {
 }
 
 const EMPTY_FEATURES: string[] = [];
+const BASE_SCROLLBAR_ACCENT = '#FF4D00';
+const SHEET_EASE = [0.22, 1, 0.36, 1] as const;
+const OVERLAY_TRANSITION = { duration: 0.28, ease: SHEET_EASE } as const;
+const SHEET_TRANSITION = { duration: 0.68, ease: SHEET_EASE } as const;
+const CONTENT_TRANSITION = { duration: 0.5, ease: SHEET_EASE, delay: 0.08 } as const;
 
 function ProjectSheetSection({ label, children }: ProjectSheetSectionProps) {
   return (
@@ -62,11 +67,11 @@ function ProjectSheetLink({
       className="radial-hover-surface group inline-flex items-center justify-between gap-4 rounded-full border px-5 py-3 font-mono text-[11px] uppercase tracking-[0.28em] hover:-translate-y-0.5"
       style={{
         ['--radial-fill' as string]: accent,
-        ['--radial-text' as string]: isPrimary ? accent : 'var(--color-text-primary)',
+        ['--radial-text' as string]: 'var(--color-text-primary)',
         ['--radial-text-hover' as string]: '#FFFFFF',
         borderColor: isPrimary ? accent : 'var(--color-border)',
         backgroundColor: 'transparent',
-        color: isPrimary ? accent : 'var(--color-text-primary)',
+        color: 'var(--color-text-primary)',
       } as CSSProperties}
     >
       <span data-radial-fill className="radial-hover-fill" />
@@ -329,6 +334,7 @@ export default function ProjectSheet({
 }: ProjectSheetProps) {
   useBodyScrollLock(isOpen);
   useEscapeKey(isOpen, onClose);
+  const closeButtonRef = useRadialHover<HTMLButtonElement>(isOpen);
 
   const accent = project ? getProjectAccent(project.id) : null;
 
@@ -340,7 +346,7 @@ export default function ProjectSheet({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
+            transition={OVERLAY_TRANSITION}
             className="fixed inset-0 z-[90]"
             style={{ backgroundColor: 'rgba(0, 0, 0, 0.72)' }}
             onClick={onClose}
@@ -350,15 +356,22 @@ export default function ProjectSheet({
           />
 
           <motion.div
-            initial={{ y: '100%' }}
-            animate={{ y: 0 }}
-            exit={{ y: '100%' }}
-            transition={{ type: 'spring', stiffness: 280, damping: 32 }}
-            className="fixed inset-0 z-[100] overflow-y-auto"
-            style={{ backgroundColor: 'var(--color-sheet-bg)' }}
+            initial={{ y: '10%', opacity: 0.985, ['--sheet-scrollbar-project-color' as string]: BASE_SCROLLBAR_ACCENT } as never}
+            animate={{ y: 0, opacity: 1, ['--sheet-scrollbar-project-color' as string]: accent } as never}
+            exit={{ y: '100%', opacity: 1, ['--sheet-scrollbar-project-color' as string]: BASE_SCROLLBAR_ACCENT } as never}
+            transition={SHEET_TRANSITION}
+            className="project-sheet-scrollbar fixed inset-0 z-[100] overflow-y-auto overscroll-y-contain"
+            style={{
+              backgroundColor: 'var(--color-sheet-bg)',
+              willChange: 'transform',
+              scrollbarColor: `${accent} var(--color-surface)`,
+            }}
             role="dialog"
             aria-modal="true"
             aria-labelledby="project-title"
+            data-lenis-prevent
+            data-lenis-prevent-wheel
+            data-lenis-prevent-touch
           >
             <div className="relative min-h-screen overflow-hidden">
               <div
@@ -375,9 +388,14 @@ export default function ProjectSheet({
               />
 
               <button
+                ref={closeButtonRef}
                 onClick={onClose}
-                className="fixed right-6 top-6 z-20 rounded-full border px-4 py-2 font-mono text-[11px] uppercase tracking-[0.28em] transition-transform duration-200 hover:-translate-y-0.5 md:right-10 md:top-8"
+                className="radial-hover-surface group fixed right-6 top-6 z-20 rounded-full border px-4 py-2 font-mono text-[11px] uppercase tracking-[0.28em] transition-transform duration-200 hover:-translate-y-0.5 md:right-10 md:top-8"
                 style={{
+                  ['--radial-fill' as string]: accent,
+                  ['--radial-text' as string]: 'var(--color-text-primary)',
+                  ['--radial-text-hover' as string]: '#FFFFFF',
+                  position: 'fixed',
                   borderColor: 'var(--color-border)',
                   backgroundColor: 'var(--color-sheet-bg)',
                   color: 'var(--color-text-primary)',
@@ -385,15 +403,21 @@ export default function ProjectSheet({
                 } as CSSProperties}
                 aria-label="Close project"
               >
-                Close
+                <span data-radial-fill className="radial-hover-fill" />
+                <span className="radial-hover-content">Close</span>
               </button>
 
-              <div className="relative mx-auto max-w-7xl px-6 pb-16 pt-24 md:px-12 md:pb-20 md:pt-28">
+              <motion.div
+                initial={{ opacity: 0, y: 24 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={CONTENT_TRANSITION}
+                className="relative mx-auto max-w-7xl px-6 pb-16 pt-24 md:px-12 md:pb-20 md:pt-28"
+              >
                 <div className="grid gap-12 lg:grid-cols-[minmax(320px,0.92fr)_minmax(0,1.08fr)] lg:gap-16">
                   <ProjectSheetSidebar project={project} accent={accent} />
                   <ProjectSheetMainContent project={project} accent={accent} />
                 </div>
-              </div>
+              </motion.div>
             </div>
           </motion.div>
         </>

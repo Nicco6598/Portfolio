@@ -7,7 +7,7 @@ interface HeroProjectSummaryProps {
 
 function HeroProjectSummaryComponent({ project }: HeroProjectSummaryProps) {
   return (
-    <div className="max-w-7xl mx-auto px-6 md:px-12 py-6 flex items-center justify-between flex-wrap gap-4">
+    <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4 px-6 py-4 md:px-12 md:py-5">
       <div className="flex items-center gap-6">
         <span
           className="font-mono text-[13px] uppercase tracking-widest"
