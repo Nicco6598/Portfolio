@@ -1,10 +1,71 @@
-import { useEffect, useRef } from 'react';
+import { useLayoutEffect, useRef } from 'react';
 import gsap from 'gsap';
+
+const DARK_HOVER_TEXT = '#0A0A0A';
+const LIGHT_HOVER_TEXT = '#FFFFFF';
+
+function parseRgbColor(colorValue: string) {
+  const rgbMatch = colorValue.match(/rgba?\(([^)]+)\)/i);
+
+  if (!rgbMatch) {
+    return null;
+  }
+
+  const channels = rgbMatch[1]
+    .split(',')
+    .map((channel) => Number.parseFloat(channel.trim()))
+    .slice(0, 3);
+
+  if (channels.length !== 3 || channels.some((channel) => Number.isNaN(channel))) {
+    return null;
+  }
+
+  return {
+    r: channels[0],
+    g: channels[1],
+    b: channels[2],
+  };
+}
+
+function toRelativeLuminance(channel: number) {
+  const normalizedChannel = channel / 255;
+
+  if (normalizedChannel <= 0.03928) {
+    return normalizedChannel / 12.92;
+  }
+
+  return ((normalizedChannel + 0.055) / 1.055) ** 2.4;
+}
+
+function getContrastRatio(luminanceA: number, luminanceB: number) {
+  const lighter = Math.max(luminanceA, luminanceB);
+  const darker = Math.min(luminanceA, luminanceB);
+
+  return (lighter + 0.05) / (darker + 0.05);
+}
+
+function getAccessibleHoverTextColor(backgroundColor: string) {
+  const rgbColor = parseRgbColor(backgroundColor);
+
+  if (!rgbColor) {
+    return LIGHT_HOVER_TEXT;
+  }
+
+  const backgroundLuminance =
+    (0.2126 * toRelativeLuminance(rgbColor.r)) +
+    (0.7152 * toRelativeLuminance(rgbColor.g)) +
+    (0.0722 * toRelativeLuminance(rgbColor.b));
+
+  const contrastOnDark = getContrastRatio(backgroundLuminance, 0);
+  const contrastOnLight = getContrastRatio(backgroundLuminance, 1);
+
+  return contrastOnDark >= contrastOnLight ? DARK_HOVER_TEXT : LIGHT_HOVER_TEXT;
+}
 
 export function useRadialHover<T extends HTMLElement>(enabled = true) {
   const elementRef = useRef<T | null>(null);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!enabled) {
       return;
     }
@@ -19,11 +80,42 @@ export function useRadialHover<T extends HTMLElement>(enabled = true) {
     const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
     const canHover = window.matchMedia('(hover: hover) and (pointer: fine)');
 
+    const updateHoverTextColor = () => {
+      const fillBackgroundColor = window.getComputedStyle(fill).backgroundColor;
+      const accessibleHoverTextColor = getAccessibleHoverTextColor(fillBackgroundColor);
+
+      element.style.setProperty('--radial-text-hover', accessibleHoverTextColor);
+    };
+
+    updateHoverTextColor();
+
+    const observer = new MutationObserver(() => {
+      updateHoverTextColor();
+    });
+
+    observer.observe(element, {
+      attributes: true,
+      attributeFilter: ['class', 'style'],
+    });
+
+    observer.observe(fill, {
+      attributes: true,
+      attributeFilter: ['class', 'style'],
+    });
+
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['class', 'style', 'data-theme'],
+    });
+
     if (reduceMotion.matches || !canHover.matches) {
       gsap.set(fill, {
         clearProps: 'clipPath,opacity',
       });
-      return;
+
+      return () => {
+        observer.disconnect();
+      };
     }
 
     const getCircleMetrics = (event: PointerEvent) => {
@@ -99,6 +191,7 @@ export function useRadialHover<T extends HTMLElement>(enabled = true) {
     element.addEventListener('pointerleave', handlePointerLeave);
 
     return () => {
+      observer.disconnect();
       gsap.killTweensOf(fill);
       element.removeEventListener('pointerenter', handlePointerEnter);
       element.removeEventListener('pointermove', handlePointerMove);

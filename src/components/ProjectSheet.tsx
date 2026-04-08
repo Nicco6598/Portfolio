@@ -71,7 +71,6 @@ function ProjectSheetLink({
       style={{
         ['--radial-fill' as string]: accent,
         ['--radial-text' as string]: 'var(--color-text-primary)',
-        ['--radial-text-hover' as string]: '#FFFFFF',
         borderColor: isPrimary ? accent : 'var(--color-border)',
         backgroundColor: 'transparent',
         color: 'var(--color-text-primary)',
@@ -381,7 +380,7 @@ export default function ProjectSheet({
             data-lenis-prevent-wheel
             data-lenis-prevent-touch
           >
-            <div className="relative min-h-screen overflow-hidden">
+            <div className="relative min-h-screen">
               <div
                 className="absolute inset-0"
                 style={{
@@ -395,31 +394,32 @@ export default function ProjectSheet({
                 }}
               />
 
-              <button
-                ref={closeButtonRef}
-                onClick={onClose}
-                className={`radial-hover-surface group fixed right-6 top-6 z-20 rounded-full border px-4 py-2 font-mono text-[11px] uppercase tracking-[0.28em] transition-transform duration-200 md:right-10 md:top-8 ${canHover ? 'hover:-translate-y-0.5' : ''}`.trim()}
-                style={{
-                  ['--radial-fill' as string]: accent,
-                  ['--radial-text' as string]: 'var(--color-text-primary)',
-                  ['--radial-text-hover' as string]: '#FFFFFF',
-                  position: 'fixed',
-                  borderColor: 'var(--color-border)',
-                  backgroundColor: 'var(--color-sheet-bg)',
-                  color: 'var(--color-text-primary)',
-                  backdropFilter: 'blur(14px)',
-                } as CSSProperties}
-                aria-label="Close project"
-              >
-                <span data-radial-fill className="radial-hover-fill" />
-                <span className="radial-hover-content">Close</span>
-              </button>
+              <div className="sticky top-0 z-30 flex justify-end px-6 pt-6 md:px-10 md:pt-8">
+                <button
+                  ref={closeButtonRef}
+                  onClick={onClose}
+                  className={`radial-hover-surface group rounded-full border px-4 py-2 font-mono text-[11px] uppercase tracking-[0.28em] transition-transform duration-200 ${canHover ? 'hover:-translate-y-0.5' : ''}`.trim()}
+                  style={{
+                    ['--radial-fill' as string]: accent,
+                    ['--radial-text' as string]: 'var(--color-text-primary)',
+                    borderColor: 'var(--color-border)',
+                    backgroundColor: 'color-mix(in srgb, var(--color-sheet-bg) 82%, transparent)',
+                    color: 'var(--color-text-primary)',
+                    backdropFilter: 'blur(14px)',
+                    boxShadow: '0 10px 30px rgba(10,10,10,0.08)',
+                  } as CSSProperties}
+                  aria-label="Close project"
+                >
+                  <span data-radial-fill className="radial-hover-fill" />
+                  <span className="radial-hover-content">Close</span>
+                </button>
+              </div>
 
               <motion.div
                 initial={{ opacity: 0, y: 24 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={CONTENT_TRANSITION}
-                className="relative mx-auto max-w-7xl px-6 pb-16 pt-24 md:px-12 md:pb-20 md:pt-28"
+                className="relative mx-auto max-w-7xl px-6 pb-16 pt-8 md:px-12 md:pb-20 md:pt-10"
               >
                 <div className="grid gap-12 lg:grid-cols-[minmax(320px,0.92fr)_minmax(0,1.08fr)] lg:gap-16">
                   <ProjectSheetSidebar canHover={canHover} project={project} accent={accent} />

@@ -1,7 +1,8 @@
-import { useCallback, useState, type CSSProperties } from 'react';
+import { useCallback, useEffect, useState, type CSSProperties } from 'react';
 import { AnimatePresence } from 'framer-motion';
 import { SECTION_IDS, SITE_NAME } from '../config/site';
 import { useActiveSection } from '../hooks/useActiveSection';
+import { useBodyScrollLock } from '../hooks/useBodyScrollLock';
 import { useCanHover } from '../hooks/useCanHover';
 import { useEscapeKey } from '../hooks/useEscapeKey';
 import { useRadialHover } from '../hooks/useRadialHover';
@@ -19,12 +20,36 @@ export default function Navbar({ onNavigate }: NavbarProps) {
   const mobileTriggerRef = useRadialHover<HTMLButtonElement>(canHover);
   const scrolled = useScrollThreshold(60);
   const activeSection = useActiveSection(SECTION_IDS, { threshold: 0.3 });
+  useBodyScrollLock(mobileMenuOpen);
 
   const closeMobileMenu = useCallback(() => {
     setMobileMenuOpen(false);
   }, []);
 
   useEscapeKey(mobileMenuOpen, closeMobileMenu);
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia('(min-width: 768px)');
+    const handleChange = (event: MediaQueryListEvent) => {
+      if (event.matches) {
+        closeMobileMenu();
+      }
+    };
+
+    if (typeof mediaQuery.addEventListener === 'function') {
+      mediaQuery.addEventListener('change', handleChange);
+
+      return () => {
+        mediaQuery.removeEventListener('change', handleChange);
+      };
+    }
+
+    mediaQuery.addListener(handleChange);
+
+    return () => {
+      mediaQuery.removeListener(handleChange);
+    };
+  }, [closeMobileMenu]);
 
   return (
     <nav
@@ -53,24 +78,29 @@ export default function Navbar({ onNavigate }: NavbarProps) {
 
         <button
           ref={mobileTriggerRef}
-          className="radial-hover-surface group relative z-50 p-2 md:hidden"
+          className="radial-hover-surface group relative z-50 inline-flex items-center gap-3 rounded-full border px-3 py-2 md:hidden"
           onClick={() => setMobileMenuOpen((open) => !open)}
           style={{
             ['--radial-fill' as string]: 'var(--color-accent)',
             ['--radial-text' as string]: 'var(--color-text-primary)',
-            ['--radial-text-hover' as string]: '#FFFFFF',
             borderRadius: '9999px',
+            borderColor: mobileMenuOpen ? 'var(--color-accent)' : 'var(--color-border)',
+            backgroundColor: 'color-mix(in srgb, var(--color-bg) 84%, rgba(255,255,255,0.35) 16%)',
           } as CSSProperties}
-          aria-label="Toggle menu"
+          aria-label={mobileMenuOpen ? 'Close menu' : 'Open menu'}
+          aria-controls="mobile-navigation"
           aria-expanded={mobileMenuOpen}
         >
           <span data-radial-fill className="radial-hover-fill" />
-          <div className="radial-hover-content flex w-6 flex-col gap-1.5">
+          <span className="radial-hover-content font-mono text-[10px] uppercase tracking-[0.18em]">
+            {mobileMenuOpen ? 'Close' : 'Menu'}
+          </span>
+          <div className="radial-hover-content flex w-5 flex-col gap-1.5">
             <span 
               className="h-0.5 transition-all duration-300"
               style={{ 
                 backgroundColor: 'var(--color-text-primary)',
-                transform: mobileMenuOpen ? 'rotate(45deg) translate(5px, 5px)' : 'none'
+                transform: mobileMenuOpen ? 'rotate(45deg) translate(4px, 4px)' : 'none'
               }}
             />
             <span 
@@ -84,7 +114,7 @@ export default function Navbar({ onNavigate }: NavbarProps) {
               className="h-0.5 transition-all duration-300"
               style={{ 
                 backgroundColor: 'var(--color-text-primary)',
-                transform: mobileMenuOpen ? 'rotate(-45deg) translate(5px, -5px)' : 'none'
+                transform: mobileMenuOpen ? 'rotate(-45deg) translate(4px, -4px)' : 'none'
               }}
             />
           </div>

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { Suspense, lazy, useCallback, useEffect, useState } from 'react';
 import { HashRouter } from 'react-router-dom';
 import { ThemeProvider } from './context/ThemeContext';
 import { useLenis } from './hooks/useLenis';
@@ -8,9 +8,11 @@ import Loader from './components/Loader';
 import Navbar from './components/Navbar';
 import Hero from './components/Hero';
 import ProjectList from './components/ProjectList';
-import ProjectSheet from './components/ProjectSheet';
 import About from './components/About';
 import Contact from './components/Contact';
+
+const loadProjectSheet = () => import('./components/ProjectSheet');
+const ProjectSheet = lazy(loadProjectSheet);
 
 function App() {
   useLenis();
@@ -66,6 +68,20 @@ function App() {
     };
   }, [isAppRevealed]);
 
+  useEffect(() => {
+    if (!isAppRevealed) {
+      return;
+    }
+
+    const preloadTimerId = window.setTimeout(() => {
+      void loadProjectSheet();
+    }, 300);
+
+    return () => {
+      window.clearTimeout(preloadTimerId);
+    };
+  }, [isAppRevealed]);
+
   return (
     <ThemeProvider>
       <HashRouter>
@@ -86,11 +102,13 @@ function App() {
               <About />
               <Contact />
             </main>
-            <ProjectSheet
-              project={selectedProject}
-              isOpen={isSheetOpen}
-              onClose={handleCloseSheet}
-            />
+            <Suspense fallback={null}>
+              <ProjectSheet
+                project={selectedProject}
+                isOpen={isSheetOpen}
+                onClose={handleCloseSheet}
+              />
+            </Suspense>
           </>
         </div>
 
