@@ -26,7 +26,6 @@ function CvDropdownComponent() {
         style={{
           ['--radial-fill' as string]: 'var(--color-accent)',
           ['--radial-text' as string]: 'var(--color-text-primary)',
-          ['--radial-text-hover' as string]: '#FFFFFF',
           borderColor: 'var(--color-accent)',
           color: 'var(--color-text-primary)',
         } as CSSProperties}
