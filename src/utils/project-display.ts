@@ -10,6 +10,7 @@ const PROJECT_ACCENTS = [
 ] as const;
 
 const NON_ALPHANUMERIC_PATTERN = /[^A-Za-z0-9\s]/g;
+const MULTISPACE_PATTERN = /\s+/g;
 
 export function getProjectAccent(projectId: string) {
   const numericId = Number.parseInt(projectId, 10);
@@ -34,4 +35,14 @@ export function getProjectInitials(name: string) {
   }
 
   return `${words[0][0]}${words[1][0]}`.toUpperCase();
+}
+
+export function getProjectSlug(name: string) {
+  const normalizedName = name
+    .replace(NON_ALPHANUMERIC_PATTERN, ' ')
+    .trim()
+    .replace(MULTISPACE_PATTERN, '-')
+    .toLowerCase();
+
+  return normalizedName || 'project';
 }

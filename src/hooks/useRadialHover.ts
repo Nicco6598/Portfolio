@@ -81,6 +81,13 @@ export function useRadialHover<T extends HTMLElement>(enabled = true) {
     const canHover = window.matchMedia('(hover: hover) and (pointer: fine)');
 
     const updateHoverTextColor = () => {
+      const hoverTextOverride = element.style.getPropertyValue('--radial-text-hover-override').trim();
+
+      if (hoverTextOverride) {
+        element.style.setProperty('--radial-text-hover', hoverTextOverride);
+        return;
+      }
+
       const fillBackgroundColor = window.getComputedStyle(fill).backgroundColor;
       const accessibleHoverTextColor = getAccessibleHoverTextColor(fillBackgroundColor);
 

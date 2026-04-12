@@ -1,9 +1,10 @@
 import { AnimatePresence, motion } from 'framer-motion';
-import type { CSSProperties, ReactNode } from 'react';
+import { type CSSProperties, type ReactNode, type RefObject, useRef } from 'react';
 import { CV_OPTIONS, EMAIL } from '../config/site';
 import type { Project } from '../data/projects';
 import { useBodyScrollLock } from '../hooks/useBodyScrollLock';
 import { useCanHover } from '../hooks/useCanHover';
+import { useDialogFocus } from '../hooks/useDialogFocus';
 import { useEscapeKey } from '../hooks/useEscapeKey';
 import { useRadialHover } from '../hooks/useRadialHover';
 import { getProjectAccent } from '../utils/project-display';
@@ -13,6 +14,7 @@ interface ProjectSheetProps {
   project: Project | null;
   isOpen: boolean;
   onClose: () => void;
+  returnFocusRef?: RefObject<HTMLElement | null>;
 }
 
 interface ProjectSheetSectionProps {
@@ -502,11 +504,19 @@ export default function ProjectSheet({
   project,
   isOpen,
   onClose,
+  returnFocusRef,
 }: ProjectSheetProps) {
   useBodyScrollLock(isOpen);
   useEscapeKey(isOpen, onClose);
   const canHover = useCanHover();
   const closeButtonRef = useRadialHover<HTMLButtonElement>(isOpen && canHover);
+  const dialogRef = useRef<HTMLDivElement>(null);
+
+  useDialogFocus({
+    containerRef: dialogRef,
+    isOpen,
+    returnFocusRef,
+  });
 
   const accent = project ? getProjectAccent(project.id) : null;
 
@@ -532,6 +542,7 @@ export default function ProjectSheet({
             animate={{ y: 0, opacity: 1, ['--sheet-scrollbar-project-color' as string]: accent } as never}
             exit={{ y: '100%', opacity: 1, ['--sheet-scrollbar-project-color' as string]: BASE_SCROLLBAR_ACCENT } as never}
             transition={SHEET_TRANSITION}
+            ref={dialogRef}
             className="project-sheet-scrollbar fixed inset-0 z-[100] overflow-y-auto overscroll-y-contain"
             style={{
               backgroundColor: 'var(--color-sheet-bg)',
@@ -541,6 +552,7 @@ export default function ProjectSheet({
             role="dialog"
             aria-modal="true"
             aria-labelledby="project-title"
+            tabIndex={-1}
             data-lenis-prevent
             data-lenis-prevent-wheel
             data-lenis-prevent-touch

@@ -222,6 +222,15 @@
   transform: translateY(0);
 }
 
+.theme-toggle-control:hover,
+.theme-toggle-control:hover .radial-hover-content,
+.theme-toggle-control:hover .radial-hover-content *,
+.theme-toggle-control:focus-visible,
+.theme-toggle-control:focus-visible .radial-hover-content,
+.theme-toggle-control:focus-visible .radial-hover-content * {
+  color: #FFFFFF !important;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .radial-hover-surface {
     transition: none;

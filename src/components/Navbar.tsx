@@ -19,7 +19,9 @@ export default function Navbar({ onNavigate }: NavbarProps) {
   const canHover = useCanHover();
   const mobileTriggerRef = useRadialHover<HTMLButtonElement>(canHover);
   const scrolled = useScrollThreshold(60, { freeze: mobileMenuOpen });
-  const activeSection = useActiveSection(SECTION_IDS, { threshold: 0.3 });
+  const activeSection = useActiveSection(SECTION_IDS, { threshold: 0.3, freeze: mobileMenuOpen });
+  const locationSearch = typeof window === 'undefined' ? '' : window.location.search;
+  const locationHash = typeof window === 'undefined' ? '' : window.location.hash;
   useBodyScrollLock(mobileMenuOpen);
 
   const closeMobileMenu = useCallback(() => {
@@ -50,6 +52,22 @@ export default function Navbar({ onNavigate }: NavbarProps) {
       mediaQuery.removeListener(handleChange);
     };
   }, [closeMobileMenu]);
+
+  useEffect(() => {
+    if (!activeSection || locationSearch.includes('project=')) {
+      return;
+    }
+
+    const nextHash = `#${activeSection}`;
+
+    if (locationHash === nextHash) {
+      return;
+    }
+
+    const url = new URL(window.location.href);
+    url.hash = activeSection;
+    window.history.replaceState(window.history.state, '', `${url.pathname}${url.search}${url.hash}`);
+  }, [activeSection, locationHash, locationSearch]);
 
   return (
     <>
@@ -126,7 +144,12 @@ export default function Navbar({ onNavigate }: NavbarProps) {
 
       <AnimatePresence>
         {mobileMenuOpen && (
-          <MobileNav activeSection={activeSection} onClose={closeMobileMenu} onNavigate={onNavigate} />
+          <MobileNav
+            activeSection={activeSection}
+            onClose={closeMobileMenu}
+            onNavigate={onNavigate}
+            returnFocusRef={mobileTriggerRef}
+          />
         )}
       </AnimatePresence>
     </>

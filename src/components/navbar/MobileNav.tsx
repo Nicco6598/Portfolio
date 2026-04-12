@@ -1,7 +1,8 @@
-import { memo, type CSSProperties } from 'react';
+import { memo, type CSSProperties, type RefObject, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { CV_OPTIONS, NAV_ITEMS } from '../../config/site';
 import { useCanHover } from '../../hooks/useCanHover';
+import { useDialogFocus } from '../../hooks/useDialogFocus';
 import { useRadialHover } from '../../hooks/useRadialHover';
 import ThemeToggle from '../ThemeToggle';
 
@@ -9,6 +10,7 @@ interface MobileNavProps {
   activeSection: string;
   onClose: () => void;
   onNavigate?: (section: string) => void;
+  returnFocusRef?: RefObject<HTMLElement | null>;
 }
 
 interface MobileNavActionLinkProps {
@@ -54,8 +56,15 @@ function MobileNavActionLink({ href, label, tone, onSelect }: MobileNavActionLin
   );
 }
 
-function MobileNavComponent({ activeSection, onClose, onNavigate }: MobileNavProps) {
+function MobileNavComponent({ activeSection, onClose, onNavigate, returnFocusRef }: MobileNavProps) {
   const canHover = useCanHover();
+  const dialogRef = useRef<HTMLDivElement>(null);
+
+  useDialogFocus({
+    containerRef: dialogRef,
+    isOpen: true,
+    returnFocusRef,
+  });
 
   return (
     <>
@@ -72,6 +81,7 @@ function MobileNavComponent({ activeSection, onClose, onNavigate }: MobileNavPro
       />
 
       <motion.div
+        ref={dialogRef}
         id="mobile-navigation"
         initial={{ opacity: 0, y: -20, scale: 0.98 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -85,6 +95,10 @@ function MobileNavComponent({ activeSection, onClose, onNavigate }: MobileNavPro
           willChange: 'transform, opacity',
           transform: 'translateZ(0)',
         }}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="mobile-navigation-title"
+        tabIndex={-1}
       >
         <div
           className="absolute inset-0"
@@ -97,6 +111,7 @@ function MobileNavComponent({ activeSection, onClose, onNavigate }: MobileNavPro
           <div className="mb-4 flex items-start justify-between gap-4">
             <div>
               <span
+                id="mobile-navigation-title"
                 className="block font-mono text-[10px] uppercase tracking-[0.24em]"
                 style={{ color: 'var(--color-accent)' }}
               >
