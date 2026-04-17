@@ -19,13 +19,13 @@ export const projects: Project[] = [
   {
     id: '01',
     index: '01',
-    name: 'Haleon',
+    name: 'Halion',
     tagline: 'Treasury intelligence for crypto-native teams',
     role: 'Full-Stack Developer',
     date: '2026',
     tags: ['Next.js 15', 'TypeScript', 'Tailwind CSS', 'Web3', 'SaaS'],
     description:
-      'Haleon, formerly Tidemark, is a refined SaaS platform built for teams that operate on-chain. It gives treasury and operations teams a clearer view of wallet activity, stablecoin flows, and critical signals through a product designed around precision rather than noise.',
+      'Halion, formerly Tidemark, is a refined SaaS platform built for teams that operate on-chain. It gives treasury and operations teams a clearer view of wallet activity, stablecoin flows, and critical signals through a product designed around precision rather than noise.',
     impact:
       'Shaped a sharper category product for on-chain treasury operations, combining wallet-native access, zero-custody architecture, and a premium system interface.',
     githubUrl: undefined,
