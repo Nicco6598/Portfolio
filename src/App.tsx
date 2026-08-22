@@ -1,7 +1,6 @@
-import { Suspense, lazy, useCallback, useEffect, useRef, useState } from 'react';
+import { Suspense, lazy, useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { ThemeProvider } from './context/ThemeContext';
 import { useLenis } from './hooks/useLenis';
-import { useScrollbarVisibility } from './hooks/useScrollbarVisibility';
 import { projects, type Project } from './data/projects';
 import Loader from './components/Loader';
 import Navbar from './components/Navbar';
@@ -9,7 +8,8 @@ import Hero from './components/Hero';
 import ProjectList from './components/ProjectList';
 import About from './components/About';
 import Contact from './components/Contact';
-import { getProjectSlug } from './utils/project-display';
+import { getProjectPath, getProjectSlug } from './utils/project-display';
+import { usePageSeo } from './hooks/usePageSeo';
 
 const loadProjectSheet = () => import('./components/ProjectSheet');
 const ProjectSheet = lazy(loadProjectSheet);
@@ -39,7 +39,17 @@ function getProjectFromLocation() {
     return null;
   }
 
-  const projectSlug = new URL(window.location.href).searchParams.get(PROJECT_QUERY_PARAM);
+  const url = new URL(window.location.href);
+  const pathMatch = url.pathname.match(/^\/projects\/([^/]+)\/?$/);
+  let projectSlug = pathMatch?.[1] ?? url.searchParams.get(PROJECT_QUERY_PARAM);
+
+  if (projectSlug) {
+    try {
+      projectSlug = decodeURIComponent(projectSlug);
+    } catch {
+      return null;
+    }
+  }
 
   if (!projectSlug) {
     return null;
@@ -52,9 +62,11 @@ function syncProjectUrl(project: Project | null, historyMode: 'push' | 'replace'
   const url = new URL(window.location.href);
 
   if (project) {
-    url.searchParams.set(PROJECT_QUERY_PARAM, getProjectSlug(project.name));
+    url.pathname = getProjectPath(project.name);
+    url.searchParams.delete(PROJECT_QUERY_PARAM);
     url.hash = '';
   } else {
+    url.pathname = '/';
     url.searchParams.delete(PROJECT_QUERY_PARAM);
   }
 
@@ -63,33 +75,54 @@ function syncProjectUrl(project: Project | null, historyMode: 'push' | 'replace'
 }
 
 function App() {
-  useLenis();
-  useScrollbarVisibility();
+  const { navigateToSection, scrollToTop } = useLenis();
   
   const [isIntroActive, setIsIntroActive] = useState(() => shouldShowIntro());
   const [isAppRevealed, setIsAppRevealed] = useState(() => !shouldShowIntro());
   const [selectedProject, setSelectedProject] = useState<Project | null>(() => getProjectFromLocation());
   const [isSheetOpen, setIsSheetOpen] = useState(() => Boolean(getProjectFromLocation()));
   const projectTriggerRef = useRef<HTMLElement | null>(null);
+  const portfolioScrollRef = useRef(0);
+  usePageSeo(selectedProject);
 
   const syncProjectStateFromLocation = useCallback(() => {
     const projectFromLocation = getProjectFromLocation();
     setSelectedProject(projectFromLocation);
     setIsSheetOpen(Boolean(projectFromLocation));
-  }, []);
+
+    if (projectFromLocation) {
+      scrollToTop();
+      return;
+    }
+
+    window.requestAnimationFrame(() => {
+      window.scrollTo({ top: portfolioScrollRef.current, left: 0, behavior: 'auto' });
+    });
+  }, [scrollToTop]);
 
   const handleProjectSelect = useCallback((project: Project) => {
+    portfolioScrollRef.current = window.scrollY;
     projectTriggerRef.current =
       document.activeElement instanceof HTMLElement ? document.activeElement : null;
 
     setSelectedProject(project);
     setIsSheetOpen(true);
     syncProjectUrl(project, isSheetOpen ? 'replace' : 'push');
-  }, [isSheetOpen]);
+    scrollToTop();
+  }, [isSheetOpen, scrollToTop]);
+
+  useLayoutEffect(() => {
+    if (!isSheetOpen || !selectedProject) return;
+    scrollToTop();
+  }, [isSheetOpen, selectedProject, scrollToTop]);
 
   const handleCloseSheet = useCallback(() => {
     setIsSheetOpen(false);
     syncProjectUrl(null, 'replace');
+
+    window.requestAnimationFrame(() => {
+      window.scrollTo({ top: portfolioScrollRef.current, left: 0, behavior: 'auto' });
+    });
   }, []);
 
   const handleLoaderReveal = useCallback(() => {
@@ -169,6 +202,7 @@ function App() {
   return (
     <ThemeProvider>
       <div
+        className={isSheetOpen ? 'app-shell is-project-open' : 'app-shell'}
         style={{
           opacity: isAppRevealed ? 1 : 0,
           transform: isAppRevealed ? 'none' : 'translate3d(0, 24px, 0)',
@@ -177,26 +211,28 @@ function App() {
         }}
         aria-hidden={isIntroActive}
       >
-        <>
+        <div className="portfolio-view" hidden={isSheetOpen}>
           <a href="#main-content" className="skip-link">
             Skip to content
           </a>
-          <Navbar />
+          <div className="grain-overlay" aria-hidden="true" />
+          <Navbar onNavigate={navigateToSection} />
           <main id="main-content" tabIndex={-1}>
             <Hero onProjectSelect={handleProjectSelect} isReady={isAppRevealed} />
             <ProjectList onProjectSelect={handleProjectSelect} />
             <About />
-            <Contact />
+            <Contact onNavigate={navigateToSection} />
           </main>
-          <Suspense fallback={null}>
-            <ProjectSheet
-              project={selectedProject}
-              isOpen={isSheetOpen}
-              onClose={handleCloseSheet}
-              returnFocusRef={projectTriggerRef}
-            />
-          </Suspense>
-        </>
+        </div>
+        <Suspense fallback={null}>
+          <ProjectSheet
+            key={isSheetOpen ? selectedProject?.id ?? 'project' : 'closed'}
+            project={selectedProject}
+            isOpen={isSheetOpen}
+            onClose={handleCloseSheet}
+            returnFocusRef={projectTriggerRef}
+          />
+        </Suspense>
       </div>
 
       {isIntroActive ? (

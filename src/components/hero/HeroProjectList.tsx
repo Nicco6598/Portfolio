@@ -1,6 +1,8 @@
 import { memo } from 'react';
 import { projects } from '../../data/projects';
 import type { Project } from '../../data/projects';
+import { getProjectPath } from '../../utils/project-display';
+import { shouldUseClientNavigation } from '../../utils/client-navigation';
 
 interface HeroProjectListProps {
   canHover: boolean;
@@ -25,12 +27,16 @@ function HeroProjectListComponent({
         const isActive = displayProject.id === project.id;
 
         return (
-          <button
+          <a
             key={project.id}
-            type="button"
-            aria-pressed={isActive}
+            href={getProjectPath(project.name)}
+            aria-current={isActive ? 'page' : undefined}
             aria-label={`Open project ${project.name}`}
-            onClick={() => onProjectSelect(project)}
+            onClick={(event) => {
+              if (!shouldUseClientNavigation(event)) return;
+              event.preventDefault();
+              onProjectSelect(project);
+            }}
             onFocus={() => onProjectFocus(project)}
             onMouseEnter={canHover ? (event) => onProjectHover(project, event.clientX, event.clientY) : undefined}
             onMouseLeave={canHover ? onProjectLeave : undefined}
@@ -52,7 +58,7 @@ function HeroProjectListComponent({
             >
               {project.name}
             </span>
-          </button>
+          </a>
         );
       })}
     </div>

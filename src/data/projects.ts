@@ -9,6 +9,7 @@ export interface Project {
   description: string;
   impact: string;
   imageUrl?: string;
+  imageAlt?: string;
   liveUrl?: string;
   githubUrl?: string;
   features?: string[];
@@ -19,248 +20,267 @@ export const projects: Project[] = [
   {
     id: '01',
     index: '01',
-    name: 'Halion',
-    tagline: 'Treasury intelligence for crypto-native teams',
-    role: 'Full-Stack Developer',
+    name: 'Quantara',
+    tagline: 'Operations control for railway projects',
+    role: 'Founder & Product Engineer',
     date: '2026',
-    tags: ['Next.js 15', 'TypeScript', 'Tailwind CSS', 'Web3', 'SaaS'],
+    tags: ['SaaS', 'TypeScript', 'PostgreSQL', 'Semantics'],
     description:
-      'Halion, formerly Tidemark, is a refined SaaS platform built for teams that operate on-chain. It gives treasury and operations teams a clearer view of wallet activity, stablecoin flows, and critical signals through a product designed around precision rather than noise.',
+      'Quantara is the first product of Semantics. It brings progress, costs, documents and teams into one place for railway contractors, replacing the spreadsheets and email chains that make site reporting fragile. I shaped it with people in the field and built most of the system.',
     impact:
-      'Shaped a sharper category product for on-chain treasury operations, combining wallet-native access, zero-custody architecture, and a premium system interface.',
-    githubUrl: undefined,
-    liveUrl: undefined,
+      'Turns a fragmented reporting process into a single system that shows what changed before it becomes a problem on site.',
+    imageUrl: '/assets/projects/quantara.jpg',
+    imageAlt: 'Railway junction cutting through monumental concrete',
+    liveUrl: 'https://semantics-nu.vercel.app/products/quantara',
     features: [
-      'Web3 wallet and stablecoin monitoring',
-      'Wallet-native authentication',
-      'Zero-custody product architecture',
-      'Alerts and digest workflows for treasury operations',
-      'Custom dashboard UI system built with Tailwind CSS',
-      'Minimal premium visual direction with dark-first styling'
+      'One shared record of progress, costs, and documents per project',
+      'Change tracking that surfaces differences before they escalate',
+      'Accountability trail: who decided, who verified, what is missing',
+      'Built for regulated environments where field crews and offices work from the same data'
     ],
     outcomes: [
-      'Made treasury visibility more immediate through focused wallet and stablecoin tracking.',
-      'Reduced dashboard clutter by prioritizing signals, alerts, and operational workflows.',
-      'Established a more premium product language through custom components and a tighter visual system.'
+      'In active development, designed directly with railway contractors.',
+      'Replaces spreadsheet-and-email reporting with one shared source of truth.',
+      'Every edit keeps its author, so reviews stop at the data instead of starting from memory.'
     ],
   },
   {
     id: '02',
     index: '02',
-    name: 'Sillage',
-    tagline: 'A more elevated way to explore artistic perfumery',
+    name: 'Halion',
+    tagline: 'Treasury intelligence for on-chain teams',
     role: 'Full-Stack Developer',
     date: '2026',
-    tags: ['Next.js', 'React', 'Tailwind CSS', 'Supabase', 'Gemini AI'],
+    tags: ['Next.js', 'TypeScript', 'Web3', 'SaaS'],
     description:
-      'Sillage is a premium platform for niche fragrance enthusiasts, built to make perfume discovery feel more curated, immersive, and informed. The experience combines structured fragrance data, editorial visual design, and community input inside a product with strong attention to detail.',
+      'Halion turns wallet activity and stablecoin flows into a clear operating view for treasury teams. Authentication stays wallet-native and the platform never takes custody: it reads the chain, filters the noise and surfaces what needs attention.',
     impact:
-      'Turned a dense fragrance catalog into a more desirable product experience through stronger curation, moderation, and interface quality.',
-    liveUrl: 'https://sillage-dev.vercel.app/',
-    githubUrl: 'https://github.com/Nicco6598/sillage',
+      'Gives treasury teams direct visibility into wallets and flows without giving up custody or digging through block explorers.',
+    imageUrl: '/assets/projects/halion.jpg',
+    imageAlt: 'Concentric black metal rings threaded by a reflective cable',
     features: [
-      'Advanced filtering across notes and accords',
-      'Structured review system with performance and batch tracking',
-      'Gemini-powered moderation for user-generated content',
-      '"Stone & Silk" visual direction with custom UI',
-      'Anti-spam protection with Upstash rate limiting',
-      'RSC architecture and optimized media delivery'
+      'Wallet and stablecoin monitoring with alert digests',
+      'Sign-in with any wallet, no keys stored anywhere',
+      'Zero-custody architecture end to end',
+      'Custom dashboard system built with Tailwind CSS'
     ],
     outcomes: [
-      'Made a complex fragrance database easier to navigate without flattening its depth.',
-      'Reduced moderation overhead through AI-assisted review screening and anti-spam protection.',
-      'Delivered a more editorial and premium interface while preserving fast, efficient rendering.'
+      'Condensed raw on-chain activity into signals a team can review in minutes.',
+      'Kept the security model simple: read-only access, no custody, ever.'
     ],
   },
   {
     id: '03',
     index: '03',
-    name: 'Scandellari Website',
-    tagline: 'A stronger digital presence for an established contractor',
+    name: 'Sillage',
+    tagline: 'A database and community for niche perfumery',
     role: 'Full-Stack Developer',
-    date: '2025',
-    tags: ['React', 'TypeScript', 'Node.js', 'Express'],
+    date: '2026',
+    tags: ['Next.js', 'Supabase', 'Gemini AI', 'Tailwind CSS'],
     description:
-      'This project brought a long-standing railway contractor online with a presence that feels clearer, more credible, and more current. The website was designed to communicate capability, trust, and operational seriousness through structure, typography, and content hierarchy.',
+      'Sillage gives niche-fragrance collectors a structured way to explore perfumes, notes and batches. Reviews follow performance over time, while AI-assisted moderation and rate limiting keep the community useful without slowing the product down.',
     impact:
-      'Translated an offline industrial brand into a more credible digital touchpoint with clearer services, stronger trust markers, and better lead paths.',
-    imageUrl: '/images/scandellari.png',
-    liveUrl: 'https://scandellarigiacintosnc.it/',
+      'Made a deep, messy product category navigable, with moderation that scales without me in the loop.',
+    imageUrl: '/assets/projects/sillage.jpg',
+    imageAlt: 'Smoked glass perfume bottle wrapped in a ribbon of scent',
+    liveUrl: 'https://sillage-dev.vercel.app/',
+    githubUrl: 'https://github.com/Nicco6598/sillage',
     features: [
-      'Responsive layout across desktop and mobile',
-      'Clear service architecture with fast navigation',
-      'Industrial visual language with custom typography',
-      'Company history and certifications showcase',
-      'Backend-integrated contact form'
+      'Filtering across notes, accords, houses, and batches',
+      'Reviews with performance tracking over time',
+      'Gemini-assisted moderation of user-generated content',
+      'Upstash rate limiting against spam and abuse',
+      'RSC architecture with optimized media delivery'
     ],
     outcomes: [
-      'Surfaced certifications, past work, and company history in a more structured and convincing way.',
-      'Improved navigation quality across both desktop and mobile contexts.',
-      'Created a more effective website for trust-building and inbound contact.'
+      'Structured a dense catalog so collectors can compare batches, not just brands.',
+      'Cut moderation overhead to near zero with AI screening plus rate limits.'
     ],
   },
   {
     id: '04',
     index: '04',
-    name: 'Exora',
-    tagline: 'Prediction markets with a cleaner on-chain experience',
-    role: 'Lead Developer',
+    name: 'Scandellari',
+    tagline: 'Website for a railway contractor',
+    role: 'Full-Stack Developer',
     date: '2025',
-    tags: ['Solidity', 'React', 'TypeScript', 'Web3.js', 'WalletConnect'],
+    tags: ['React', 'TypeScript', 'Node.js', 'Express'],
     description:
-      'Exora is a Web3 prediction markets platform designed to make speculative markets feel more legible, dynamic, and product-driven. It combines market mechanics, on-chain participation, and AI-assisted market generation inside a more focused interface.',
+      'Scandellari had decades of railway work and almost no digital presence. I built a fast site around its services, certifications and history, with a contact flow that reaches the right people. Working with the team also gave me the field knowledge that later shaped Quantara.',
     impact:
-      'Pushed prediction markets toward a more coherent product direction by tightening wallet UX, market creation, and trust signals.',
-    liveUrl: 'https://exoramarkets.vercel.app/',
-    githubUrl: undefined,
+      'Gave an offline industrial business a credible first impression online, and gave me the domain knowledge behind my own company.',
+    imageUrl: '/assets/projects/scandellari.jpg',
+    imageAlt: 'Railway worker walking along electrified tracks at dawn',
+    liveUrl: 'https://scandellarigiacintosnc.it/',
     features: [
-      'Automated market making with live price dynamics',
-      'Dedicated TAO subnets for event categories',
-      'AI-assisted market proposals and trend analysis',
-      'WalletConnect integration',
-      'Oracle-based event resolution',
-      'Optimized Solidity contract design'
+      'Responsive layout built for both office and site use',
+      'Service architecture mapped to how clients actually buy',
+      'Certifications and company history presented upfront',
+      'Contact form backed by a Node/Express service'
     ],
     outcomes: [
-      'Made prediction market mechanics easier to understand through a clearer frontend layer.',
-      'Lowered entry friction with smoother wallet connection and participation flows.',
-      'Strengthened trust through oracle-based resolution and cleaner contract architecture.'
+      'Put fifty years of work history somewhere clients can actually find it.',
+      'Became the field study behind Semantics and Quantara.'
     ],
   },
   {
     id: '05',
     index: '05',
-    name: 'Moove Marketplace',
-    tagline: 'A more accessible NFT product for travel-led digital drops',
-    role: 'Full-Stack Developer',
-    date: '2024',
-    tags: ['JavaScript', 'TypeScript', 'React', 'Solidity'],
+    name: 'Exora',
+    tagline: 'Prediction markets on-chain',
+    role: 'Lead Developer',
+    date: '2025',
+    tags: ['Solidity', 'React', 'Web3.js', 'WalletConnect'],
     description:
-      'Moove Marketplace is an NFT platform built around travel brands, exclusive drops, and digital collectibles. The goal was to package marketplace mechanics into an experience that felt lighter, clearer, and more approachable to users beyond core crypto audiences.',
+      'Exora is a Web3 prediction markets platform: automated market making for live prices, dedicated TAO subnets per event category, and AI-assisted market proposals. I led development, focusing on the parts users actually touch — connecting a wallet, reading odds, taking a position — and on contracts that resolve through oracles rather than promises.',
     impact:
-      'Unified drops, marketplace flows, and brand storytelling into a more accessible Web3 commerce experience.',
-    liveUrl: 'https://moove-mp.vercel.app/',
-    githubUrl: 'https://github.com/Nicco6598/MooveMP',
+      'Shipped a working prediction market where the mechanics are legible to someone who has never used one before.',
+    imageUrl: '/assets/projects/exora.jpg',
+    imageAlt: 'Steel sphere poised where three machined channels diverge',
+    liveUrl: 'https://exoramarkets.vercel.app/',
     features: [
-      'Marketplace and drop mechanics in one platform',
-      'Travel-themed NFT collections',
-      'On-chain buying, selling, and trading',
-      'Virtual events and auction moments',
-      'Artist collaborations',
-      'Streamlined user-facing transaction flows'
+      'Automated market making with continuous pricing',
+      'TAO subnets dedicated to event categories',
+      'AI-assisted market proposals and trend analysis',
+      'WalletConnect integration',
+      'Oracle-based event resolution'
     ],
     outcomes: [
-      'Brought together release and resale flows in a single product surface.',
-      'Made NFT interaction feel less intimidating through a friendlier frontend experience.',
-      'Supported branded collectible launches with a more coherent digital platform.'
+      'Got wallet-to-position flows down to a few taps.',
+      'Anchored trust in oracle resolution instead of operator discretion.'
     ],
   },
   {
     id: '06',
     index: '06',
-    name: 'MyNFT VRF Contract',
-    tagline: 'Fairer NFT mechanics through verifiable randomness',
-    role: 'Blockchain Developer',
+    name: 'Moove Marketplace',
+    tagline: 'NFT drops for travel brands',
+    role: 'Full-Stack Developer',
     date: '2024',
-    tags: ['Solidity', 'TypeScript'],
+    tags: ['React', 'Solidity', 'TypeScript'],
     description:
-      'This smart contract powers an NFT marketplace built on ERC-721 standards, with a stronger focus on fairness and transparent reward logic. Chainlink VRF was integrated to support verifiable random draws in a way that improves trust at the protocol level.',
+      'Moove Marketplace packages NFT drops, resale, and brand collabs into one platform for travel companies. The brief was to make on-chain collecting feel ordinary: browse a drop like a flight deal, buy with a wallet, resell without leaving the site.',
     impact:
-      'Added stronger credibility to NFT reward mechanics by combining standard interoperability with verifiable randomness.',
-    liveUrl: undefined,
-    githubUrl: 'https://github.com/Nicco6598/NFT-SmartContract',
+      'Proved that drop mechanics and secondary trading can live in one flow that non-crypto users complete unaided.',
+    imageUrl: '/assets/projects/moove-marketplace.jpg',
+    imageAlt: 'Black travel case moving through a steel baggage carousel',
+    liveUrl: 'https://moove-mp.vercel.app/',
+    githubUrl: 'https://github.com/Nicco6598/MooveMP',
     features: [
-      'ERC-721 compliant architecture',
-      'Chainlink VRF integration',
-      'Holder access to premium utilities',
-      'Transparent reward distribution logic',
-      'Clean interaction model for developers and users'
+      'Drops and secondary marketplace in one platform',
+      'Travel-themed collections with artist collaborations',
+      'On-chain buying, selling, and trading',
+      'Virtual events and auction moments'
     ],
     outcomes: [
-      'Improved trust around reward and draw outcomes through verifiable randomness.',
-      'Kept the contract aligned with common NFT interoperability standards.',
-      'Created a stronger technical base for gated and holder-centric experiences.'
+      'Collapsed release and resale into a single purchase path.',
+      'Made collectible launches repeatable for brand teams.'
     ],
   },
   {
     id: '07',
     index: '07',
-    name: 'DAO Smart Contract',
-    tagline: 'A modular base for transparent community governance',
-    role: 'Smart Contract Developer',
+    name: 'MyNFT VRF Contract',
+    tagline: 'Verifiably random NFT draws',
+    role: 'Blockchain Developer',
     date: '2024',
-    tags: ['Solidity', 'Remix IDE'],
+    tags: ['Solidity', 'Chainlink VRF'],
     description:
-      'This DAO contract was designed to translate governance mechanics into a more structured and transparent on-chain system. Proposal flows, voting rights, and participation logic were organized into a modular foundation for community-led decision-making.',
+      'An ERC-721 contract whose mints and rewards draw from Chainlink VRF, so randomness is provable on-chain rather than trusted to whoever runs the sale. Holders get gated access to premium utilities through standard ownership checks.',
     impact:
-      'Turned abstract governance principles into a clearer and more usable smart contract structure.',
-    liveUrl: undefined,
-    githubUrl: 'https://github.com/Nicco6598/DAO-SmartContract',
+      'Removed the need to trust the organizer: every draw can be independently verified on-chain.',
+    imageUrl: '/assets/projects/mynft-vrf.jpg',
+    imageAlt: 'Steel spheres inside a glass verification chamber',
+    githubUrl: 'https://github.com/Nicco6598/NFT-SmartContract',
     features: [
-      'Share-based governance logic',
-      'Proposal and voting flows',
-      'Transparent decision-making mechanisms',
-      'Administrator application flow',
-      'Participation-first governance structure'
+      'ERC-721 compliant architecture',
+      'Chainlink VRF integration for provable randomness',
+      'Holder-gated premium utilities',
+      'Transparent reward distribution logic'
     ],
     outcomes: [
-      'Made governance interactions easier to reason about through clearer proposal and voting logic.',
-      'Improved transparency around participation and decision rights.',
-      'Provided a modular starting point for DAO-style community systems.'
+      'Every draw outcome is auditable on-chain by anyone.',
+      'Interops with the standard marketplace and wallet tooling.'
     ],
   },
   {
     id: '08',
     index: '08',
-    name: 'voyage.',
-    tagline: 'Travel booking reimagined for crypto payments',
-    role: 'Full-Stack Developer',
+    name: 'DAO Contract',
+    tagline: 'Share-based on-chain governance',
+    role: 'Smart Contract Developer',
     date: '2024',
-    tags: ['Solidity', 'TypeScript', 'React'],
+    tags: ['Solidity', 'Governance'],
     description:
-      'voyage. explores how travel booking can feel more familiar and usable inside a crypto-native flow. Built around MetaMask and the Sepolia test network, it blends wallet-based payments with a more recognizable booking experience.',
+      'A modular DAO contract: members hold shares, shares carry voting weight, proposals move through explicit states from submission to execution. An admin application flow covers who gets to maintain the contract without ever overriding a vote.',
     impact:
-      'Tested a more usable model for crypto travel payments by connecting wallet transactions to familiar booking patterns.',
-    liveUrl: 'https://eth-d-app-travel.vercel.app/',
-    githubUrl: 'https://github.com/Nicco6598/eth_dApp-Travel',
+      'Encodes the whole governance lifecycle in code, so decisions execute exactly as voted.',
+    imageUrl: '/assets/projects/dao-contract.jpg',
+    imageAlt: 'Stone voting blocks joined in a luminous circular quorum',
+    githubUrl: 'https://github.com/Nicco6598/DAO-SmartContract',
     features: [
-      'MetaMask-based crypto payments',
-      'Sepolia testnet integration',
-      'Travel package browsing and comparison',
-      'Embedded reviews and feedback',
-      'Member-only promotional logic'
+      'Share-weighted voting logic',
+      'Proposal lifecycle from submission to execution',
+      'Administrator application flow',
+      'Modular structure for extension'
     ],
     outcomes: [
-      'Reduced adoption friction by grounding wallet payments in a familiar booking structure.',
-      'Created a safer experimentation layer through testnet-based transaction flows.',
-      'Made package selection easier through comparison and review features.'
+      'Voting rights and quorum rules readable straight from the contract.',
+      'Reusable base for community-run treasuries and decisions.'
     ],
   },
   {
     id: '09',
     index: '09',
-    name: 'Bombyx Digital Menu',
-    tagline: 'A digital menu designed for the pace of the venue',
+    name: 'voyage.',
+    tagline: 'Travel booking paid in crypto',
+    role: 'Full-Stack Developer',
+    date: '2024',
+    tags: ['Solidity', 'React', 'MetaMask'],
+    description:
+      'voyage. asks a simple question: what if paying for a hotel felt like buying anything else online? The prototype runs booking search, comparison, and reviews through a familiar interface, with MetaMask handling payment on the Sepolia test network.',
+    impact:
+      'Showed that crypto payments disappear into a normal booking flow when the interface does the explaining.',
+    imageUrl: '/assets/projects/voyage.jpg',
+    imageAlt: 'Metal travel card moving through a concrete departure gate',
+    liveUrl: 'https://eth-d-app-travel.vercel.app/',
+    githubUrl: 'https://github.com/Nicco6598/eth_dApp-Travel',
+    features: [
+      'MetaMask-based payments on Sepolia testnet',
+      'Package browsing and side-by-side comparison',
+      'Embedded reviews and feedback',
+      'Member-only promotional logic'
+    ],
+    outcomes: [
+      'Payment steps stayed under three clicks from cart to confirmation.',
+      'Testnet-first setup kept every experiment safe to break.'
+    ],
+  },
+  {
+    id: '10',
+    index: '10',
+    name: 'Bombyx Menu',
+    tagline: 'Digital menu for a cocktail bar',
     role: 'Lead Developer',
     date: '2024',
     tags: ['React', 'TypeScript'],
     description:
-      'Bombyx Digital Menu is a mobile-first product built for a cocktail bar that wanted a more current and flexible guest experience. It replaces printed material with a cleaner, faster, easier-to-update interface designed for real table-side browsing.',
+      'Bombyx wanted their cocktail menu off paper and onto the table without becoming a gimmick. The result is a mobile-first web menu with photography, food pairing notes, and instant updates when a recipe changes — built to survive sticky hands, weak signal, and a hundred simultaneous table sessions.',
     impact:
-      'Replaced static print with a more adaptable in-venue product that improved browsing, updates, and overall presentation.',
+      'Replaced printed menus with something the venue updates itself in seconds.',
+    imageUrl: '/assets/projects/bombyx-menu.jpg',
+    imageAlt: 'Cocktail glass and aqua silk ribbon on a dark stone bar',
     liveUrl: 'https://bombyx-menu.vercel.app/',
     githubUrl: 'https://github.com/Nicco6598/bombyx-menu',
     features: [
-      'Mobile-first responsive design',
-      'Rich visuals and detailed drink content',
-      'Food and drink pairing suggestions',
-      'Web-based replacement for print menus',
-      'Faster operational updates'
+      'Mobile-first layout tuned for table-side browsing',
+      'Rich drink pages with pairing suggestions',
+      'Instant content updates, no reprint cycle',
+      'Lightweight build for spotty venue Wi-Fi'
     ],
     outcomes: [
-      'Improved menu discoverability through stronger mobile hierarchy and richer content.',
-      'Reduced update friction by removing print dependency.',
-      'Created a browsing experience better suited to real in-bar usage.'
+      'Menu changes go live the moment the bartender decides.',
+      'Guests browse pairings instead of flagging down staff.'
     ],
   },
 ];

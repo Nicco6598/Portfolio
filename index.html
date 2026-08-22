@@ -3,66 +3,93 @@
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="canonical" href="https://www.marconiccolini.com/" />
+    <link rel="preload" as="image" href="/assets/projects/quantara.jpg" fetchpriority="high" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Marco Niccolini | Full-Stack Software Developer</title>
+    <title>Marco Niccolini — Full-Stack Developer &amp; Founder</title>
     <meta
       name="description"
-      content="Full-stack software developer building fast, polished web experiences with React, Next.js, Node.js, and TypeScript."
+      content="Portfolio of Marco Niccolini, full-stack developer in Milan and founder of Semantics. Selected React, TypeScript, Web3 and railway software projects."
     />
     <meta name="author" content="Marco Niccolini" />
-    <meta name="robots" content="index, follow" />
+    <meta name="robots" content="index, follow, max-image-preview:large" />
     <meta name="format-detection" content="telephone=no, address=no, email=no" />
     <meta name="theme-color" media="(prefers-color-scheme: light)" content="#F5F5F0" />
     <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#0C0C0C" />
 
-    <meta property="og:type" content="website" />
-    <meta property="og:site_name" content="MN." />
-    <meta property="og:title" content="Marco Niccolini | Full-Stack Software Developer" />
+    <meta property="og:type" content="profile" />
+    <meta property="og:site_name" content="Marco Niccolini" />
+    <meta property="og:url" content="https://www.marconiccolini.com/" />
+    <meta property="profile:first_name" content="Marco" />
+    <meta property="profile:last_name" content="Niccolini" />
+    <meta property="og:title" content="Marco Niccolini — Full-Stack Developer &amp; Founder" />
     <meta
       property="og:description"
-      content="Full-stack software developer building fast, polished web experiences with React, Next.js, Node.js, and TypeScript."
+      content="Portfolio of Marco Niccolini, full-stack developer in Milan and founder of Semantics. Selected React, TypeScript, Web3 and railway software projects."
     />
-    <meta property="og:image" content="/og-cover.svg" />
-    <meta property="og:image:type" content="image/svg+xml" />
+    <meta property="og:image" content="https://www.marconiccolini.com/og-cover.png" />
+    <meta property="og:image:secure_url" content="https://www.marconiccolini.com/og-cover.png" />
+    <meta property="og:image:type" content="image/png" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
     <meta property="og:image:alt" content="Editorial portfolio cover for Marco Niccolini, full-stack software developer." />
 
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="Marco Niccolini | Full-Stack Software Developer" />
+    <meta name="twitter:title" content="Marco Niccolini — Full-Stack Developer &amp; Founder" />
     <meta
       name="twitter:description"
-      content="Full-stack software developer building fast, polished web experiences with React, Next.js, Node.js, and TypeScript."
+      content="Portfolio of Marco Niccolini, full-stack developer in Milan and founder of Semantics. Selected React, TypeScript, Web3 and railway software projects."
     />
-    <meta name="twitter:image" content="/og-cover.svg" />
-    <meta name="twitter:image:alt" content="Editorial portfolio cover for Marco Niccolini, full-stack software developer." />
+    <meta name="twitter:image" content="https://www.marconiccolini.com/og-cover.png" />
+    <meta name="twitter:image:alt" content="Editorial portfolio cover for Marco Niccolini, founder of Semantics." />
     <meta property="og:locale" content="en_US" />
-    <script type="application/ld+json">
+    <script id="structured-data" type="application/ld+json">
       {
         "@context": "https://schema.org",
-        "@type": "Person",
-        "name": "Marco Niccolini",
-        "jobTitle": "Full-Stack Software Developer",
-        "description": "Full-stack software developer building fast, polished web experiences with React, Next.js, Node.js, and TypeScript.",
-        "knowsAbout": [
-          "React",
-          "Next.js",
-          "Node.js",
-          "TypeScript",
-          "PostgreSQL",
-          "Frontend Development",
-          "Full-Stack Development",
-          "Web Performance"
-        ],
-        "address": {
-          "@type": "PostalAddress",
-          "addressLocality": "Pioltello",
-          "addressRegion": "MI",
-          "addressCountry": "IT"
-        },
-        "sameAs": [
-          "https://github.com/Nicco6598",
-          "https://www.linkedin.com/in/marconiccolini-/"
+        "@graph": [
+          {
+            "@type": "ProfilePage",
+            "@id": "https://www.marconiccolini.com/#profile",
+            "url": "https://www.marconiccolini.com/",
+            "name": "Marco Niccolini — Full-Stack Developer & Founder",
+            "description": "Portfolio of Marco Niccolini, full-stack developer in Milan and founder of Semantics. Selected React, TypeScript, Web3 and railway software projects.",
+            "mainEntity": { "@id": "https://www.marconiccolini.com/#person" },
+            "isPartOf": { "@id": "https://www.marconiccolini.com/#website" }
+          },
+          {
+            "@type": "Person",
+            "@id": "https://www.marconiccolini.com/#person",
+            "name": "Marco Niccolini",
+            "url": "https://www.marconiccolini.com/",
+            "jobTitle": ["Full-Stack Developer", "Founder & CEO of Semantics"],
+            "description": "Portfolio of Marco Niccolini, full-stack developer in Milan and founder of Semantics. Selected React, TypeScript, Web3 and railway software projects.",
+            "worksFor": {
+              "@type": "Organization",
+              "name": "Semantics",
+              "url": "https://semantics-nu.vercel.app/"
+            },
+            "address": {
+              "@type": "PostalAddress",
+              "addressLocality": "Milano",
+              "addressRegion": "Lombardia",
+              "addressCountry": "IT"
+            },
+            "knowsAbout": ["React", "TypeScript", "Next.js", "Node.js", "PostgreSQL", "Solidity", "Product Engineering"],
+            "sameAs": [
+              "https://github.com/Nicco6598",
+              "https://www.linkedin.com/in/marconiccolini-/",
+              "https://semantics-nu.vercel.app/"
+            ]
+          },
+          {
+            "@type": "WebSite",
+            "@id": "https://www.marconiccolini.com/#website",
+            "url": "https://www.marconiccolini.com/",
+            "name": "Marco Niccolini",
+            "alternateName": "MN.",
+            "inLanguage": "en",
+            "publisher": { "@id": "https://www.marconiccolini.com/#person" }
+          }
         ]
       }
     </script>

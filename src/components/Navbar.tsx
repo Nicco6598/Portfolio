@@ -1,11 +1,9 @@
-import { useCallback, useEffect, useState, type CSSProperties } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { AnimatePresence } from 'framer-motion';
-import { SECTION_IDS, SITE_NAME } from '../config/site';
-import { useActiveSection } from '../hooks/useActiveSection';
+import { SECTION_IDS } from '../config/site';
 import { useBodyScrollLock } from '../hooks/useBodyScrollLock';
-import { useCanHover } from '../hooks/useCanHover';
 import { useEscapeKey } from '../hooks/useEscapeKey';
-import { useRadialHover } from '../hooks/useRadialHover';
+import { useSectionNavigation } from '../hooks/useSectionNavigation';
 import { useScrollThreshold } from '../hooks/useScrollThreshold';
 import DesktopNav from './navbar/DesktopNav';
 import MobileNav from './navbar/MobileNav';
@@ -16,141 +14,86 @@ interface NavbarProps {
 
 export default function Navbar({ onNavigate }: NavbarProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const canHover = useCanHover();
-  const mobileTriggerRef = useRadialHover<HTMLButtonElement>(canHover);
-  const scrolled = useScrollThreshold(60, { freeze: mobileMenuOpen });
-  const activeSection = useActiveSection(SECTION_IDS, { threshold: 0.3, freeze: mobileMenuOpen });
-  const locationSearch = typeof window === 'undefined' ? '' : window.location.search;
-  const locationHash = typeof window === 'undefined' ? '' : window.location.hash;
+  const [isDesktop, setIsDesktop] = useState(() => window.matchMedia('(min-width: 901px)').matches);
+  const scrolled = useScrollThreshold(48, { freeze: mobileMenuOpen });
+  const { activeSection, progress } = useSectionNavigation(SECTION_IDS, !isDesktop);
+  const mobileTriggerRef = useRef<HTMLButtonElement>(null);
+  const pendingMobileSectionRef = useRef<string | null>(null);
+
   useBodyScrollLock(mobileMenuOpen);
+  const closeMobileMenu = useCallback(() => setMobileMenuOpen(false), []);
+  const queueMobileNavigation = useCallback((section: string) => {
+    pendingMobileSectionRef.current = section;
+    closeMobileMenu();
+  }, [closeMobileMenu]);
+  const completeMobileNavigation = useCallback(() => {
+    const section = pendingMobileSectionRef.current;
 
-  const closeMobileMenu = useCallback(() => {
-    setMobileMenuOpen(false);
-  }, []);
+    if (!section || !onNavigate) return;
 
+    pendingMobileSectionRef.current = null;
+    onNavigate(section);
+  }, [onNavigate]);
   useEscapeKey(mobileMenuOpen, closeMobileMenu);
 
   useEffect(() => {
-    const mediaQuery = window.matchMedia('(min-width: 768px)');
-    const handleChange = (event: MediaQueryListEvent) => {
-      if (event.matches) {
-        closeMobileMenu();
-      }
+    const mediaQuery = window.matchMedia('(min-width: 901px)');
+    const handleChange = () => {
+      setIsDesktop(mediaQuery.matches);
+      if (mediaQuery.matches) closeMobileMenu();
     };
-
-    if (typeof mediaQuery.addEventListener === 'function') {
-      mediaQuery.addEventListener('change', handleChange);
-
-      return () => {
-        mediaQuery.removeEventListener('change', handleChange);
-      };
-    }
-
-    mediaQuery.addListener(handleChange);
-
-    return () => {
-      mediaQuery.removeListener(handleChange);
-    };
+    mediaQuery.addEventListener('change', handleChange);
+    return () => mediaQuery.removeEventListener('change', handleChange);
   }, [closeMobileMenu]);
-
-  useEffect(() => {
-    if (!activeSection || locationSearch.includes('project=')) {
-      return;
-    }
-
-    const nextHash = `#${activeSection}`;
-
-    if (locationHash === nextHash) {
-      return;
-    }
-
-    const url = new URL(window.location.href);
-    url.hash = activeSection;
-    window.history.replaceState(window.history.state, '', `${url.pathname}${url.search}${url.hash}`);
-  }, [activeSection, locationHash, locationSearch]);
 
   return (
     <>
-      <nav
-        className="fixed top-0 left-0 right-0 z-50"
-        style={{
-          padding: '1.25rem 1.5rem',
-          backgroundColor: scrolled ? 'var(--color-bg)' : 'transparent',
-          backdropFilter: scrolled ? 'blur(12px)' : 'none',
-          borderBottom: scrolled ? '1px solid var(--color-border)' : 'none',
-          transition: 'background-color 220ms ease, border-color 220ms ease, backdrop-filter 220ms ease',
-        }}
-      >
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <a
-            href="#"
-            className={`relative z-50 flex items-center gap-2 font-mono text-[12px] uppercase tracking-widest transition-opacity ${canHover ? 'hover:opacity-70' : ''}`.trim()}
-            style={{ color: 'var(--color-text-primary)' }}
-          >
-            <div
-              className="w-3 h-3 rounded-full"
-              style={{ backgroundColor: 'var(--color-accent)' }}
-            />
-            {SITE_NAME}
-          </a>
+      <header className={`site-header ${scrolled ? 'site-header--scrolled' : ''} ${mobileMenuOpen ? 'site-header--menu-open' : ''}`.trim()}>
+        <a
+          href="#works"
+          className="site-mark"
+          aria-label="Marco Niccolini — home"
+          onClick={(event) => {
+            if (!onNavigate) return;
+            event.preventDefault();
 
-          <DesktopNav activeSection={activeSection} onNavigate={onNavigate} />
+            if (mobileMenuOpen) {
+              queueMobileNavigation('works');
+              return;
+            }
 
-          <button
-            ref={mobileTriggerRef}
-            className="radial-hover-surface group relative z-50 inline-flex items-center gap-3 rounded-full border px-3 py-2 md:hidden"
-            onClick={() => setMobileMenuOpen((open) => !open)}
-            style={{
-              ['--radial-fill' as string]: 'var(--color-accent)',
-              ['--radial-text' as string]: 'var(--color-text-primary)',
-              borderRadius: '9999px',
-              borderColor: mobileMenuOpen ? 'var(--color-accent)' : 'var(--color-border)',
-              backgroundColor: 'color-mix(in srgb, var(--color-bg) 84%, rgba(255,255,255,0.35) 16%)',
-            } as CSSProperties}
-            aria-label={mobileMenuOpen ? 'Close menu' : 'Open menu'}
-            aria-controls="mobile-navigation"
-            aria-expanded={mobileMenuOpen}
-          >
-            <span data-radial-fill className="radial-hover-fill" />
-            <span className="radial-hover-content font-mono text-[10px] uppercase tracking-[0.18em]">
-              {mobileMenuOpen ? 'Close' : 'Menu'}
-            </span>
-            <div className="radial-hover-content flex w-5 flex-col gap-1.5">
-              <span
-                className="h-0.5 transition-all duration-300"
-                style={{
-                  backgroundColor: 'var(--color-text-primary)',
-                  transform: mobileMenuOpen ? 'rotate(45deg) translate(4px, 4px)' : 'none'
-                }}
-              />
-              <span
-                className="h-0.5 transition-all duration-300"
-                style={{
-                  backgroundColor: 'var(--color-text-primary)',
-                  opacity: mobileMenuOpen ? 0 : 1
-                }}
-              />
-              <span
-                className="h-0.5 transition-all duration-300"
-                style={{
-                  backgroundColor: 'var(--color-text-primary)',
-                  transform: mobileMenuOpen ? 'rotate(-45deg) translate(4px, -4px)' : 'none'
-                }}
-              />
-            </div>
-          </button>
-        </div>
-      </nav>
+            onNavigate('works');
+          }}
+        >
+          <span className="site-mark__monogram">MN</span>
+          <span className="site-mark__name">Marco<br />Niccolini</span>
+        </a>
 
-      <AnimatePresence>
-        {mobileMenuOpen && (
+        <DesktopNav activeSection={activeSection} progress={progress} onNavigate={onNavigate} />
+
+        <button
+          ref={mobileTriggerRef}
+          data-menu-trigger="true"
+          type="button"
+          className={`mobile-menu-trigger ${mobileMenuOpen ? 'is-open' : ''}`.trim()}
+          onClick={() => setMobileMenuOpen((open) => !open)}
+          aria-label={mobileMenuOpen ? 'Close menu' : 'Open menu'}
+          aria-expanded={mobileMenuOpen}
+          aria-controls="mobile-navigation"
+        >
+          <span>{mobileMenuOpen ? 'Close' : 'Menu'}</span>
+          <span className="mobile-menu-trigger__glyph" aria-hidden="true"><i /><i /></span>
+        </button>
+      </header>
+
+      <AnimatePresence onExitComplete={completeMobileNavigation}>
+        {mobileMenuOpen ? (
           <MobileNav
-            activeSection={activeSection}
             onClose={closeMobileMenu}
-            onNavigate={onNavigate}
+            onNavigate={onNavigate ? queueMobileNavigation : undefined}
             returnFocusRef={mobileTriggerRef}
           />
-        )}
+        ) : null}
       </AnimatePresence>
     </>
   );

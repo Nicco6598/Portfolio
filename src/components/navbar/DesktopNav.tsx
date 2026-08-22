@@ -5,54 +5,43 @@ import CvDropdown from './CvDropdown';
 
 interface DesktopNavProps {
   activeSection: string;
+  progress: Record<string, number>;
   onNavigate?: (section: string) => void;
 }
 
-function DesktopNavComponent({ activeSection, onNavigate }: DesktopNavProps) {
+function DesktopNavComponent({ activeSection, progress, onNavigate }: DesktopNavProps) {
   return (
-    <div className="hidden md:flex items-center gap-6">
-      <ul className="flex items-center gap-1">
-        {NAV_ITEMS.map((link) => {
-          const isActive = activeSection === link.sectionId;
-
+    <div className="desktop-navigation">
+      <nav className="section-track" aria-label="Primary navigation">
+        {NAV_ITEMS.map((item) => {
+          const active = activeSection === item.sectionId;
           return (
-            <li key={link.label}>
-              <a
-                href={link.href}
-                aria-current={isActive ? 'location' : undefined}
-                onClick={(event) => {
-                  if (onNavigate) {
-                    event.preventDefault();
-                    onNavigate(link.sectionId);
-                  }
-                }}
-                className="desktop-nav-link group px-3 py-2 font-mono text-[11px] uppercase tracking-[0.15em]"
-                style={{
-                  ['--desktop-nav-link-color' as string]: isActive ? 'var(--color-accent)' : 'var(--color-text-secondary)',
-                  ['--desktop-nav-link-hover-color' as string]: isActive ? 'var(--color-accent)' : 'var(--color-text-primary)',
-                } as CSSProperties}
-              >
-                {isActive ? (
-                  <span className="desktop-nav-link-label">
-                    <span>{'{'}</span>
-                    <span>{link.label.toLowerCase()}</span>
-                    <span>{'}'}</span>
-                  </span>
-                ) : (
-                  <span className="desktop-nav-link-label">{link.label}</span>
-                )}
-              </a>
-            </li>
+            <a
+              key={item.label}
+              href={item.href}
+              aria-current={active ? 'location' : undefined}
+              className={active ? 'is-active' : ''}
+              style={{ '--section-progress': progress[item.sectionId] ?? 0 } as CSSProperties}
+              onClick={(event) => {
+                if (onNavigate) {
+                  event.preventDefault();
+                  onNavigate(item.sectionId);
+                }
+              }}
+            >
+              <span>{item.label}</span>
+              <i aria-hidden="true"><b /></i>
+            </a>
           );
         })}
-      </ul>
+      </nav>
 
-      <CvDropdown />
-      <ThemeToggle />
+      <div className="header-utilities">
+        <CvDropdown />
+        <ThemeToggle />
+      </div>
     </div>
   );
 }
 
-const DesktopNav = memo(DesktopNavComponent);
-
-export default DesktopNav;
+export default memo(DesktopNavComponent);

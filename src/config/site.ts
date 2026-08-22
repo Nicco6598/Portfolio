@@ -18,11 +18,16 @@ export interface SocialLink {
 
 export const PERSON_NAME = 'Marco Niccolini';
 export const SITE_NAME = 'MN.';
-export const SITE_TITLE = `${PERSON_NAME} | Full-Stack Software Developer`;
-export const SITE_DESCRIPTION = 'Full-stack software developer building fast, polished web experiences with React, Next.js, Node.js, and TypeScript.';
-export const LOCATION_LABEL = 'Pioltello (MI), Italy';
-export const AVAILABILITY_LABEL = 'Open to freelance projects and opportunities';
-export const CORE_FOCUS_LABEL = 'React, Next.js, Node.js, TypeScript';
+export const SITE_URL = 'https://www.marconiccolini.com';
+export const ROLE_LABEL = 'Full-Stack Developer';
+export const FOUNDER_LABEL = 'Founder & CEO of Semantics';
+export const SITE_TITLE = `${PERSON_NAME} — Full-Stack Developer & Founder`;
+export const SITE_DESCRIPTION =
+  'Portfolio of Marco Niccolini, full-stack developer in Milan and founder of Semantics. Selected React, TypeScript, Web3 and railway software projects.';
+export const LOCATION_LABEL = 'Milano, Italy';
+export const AVAILABILITY_LABEL = 'Available for select freelance projects';
+export const SEMANTICS_URL = 'https://semantics-nu.vercel.app/';
+export const SEMANTICS_TAGLINE = 'Software for work that cannot stop.';
 
 export const NAV_ITEMS: NavItem[] = [
   { label: 'Works', href: '#works', sectionId: 'works' },
@@ -52,6 +57,7 @@ export const EMAIL = 'nicco6598@gmail.com';
 export const SOCIAL_LINKS: SocialLink[] = [
   { label: 'GitHub', href: 'https://github.com/Nicco6598' },
   { label: 'LinkedIn', href: 'https://www.linkedin.com/in/marconiccolini-/' },
+  { label: 'Semantics', href: SEMANTICS_URL },
 ];
 
 export const CURRENT_YEAR = new Date().getFullYear();

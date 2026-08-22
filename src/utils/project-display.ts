@@ -1,25 +1,11 @@
-const PROJECT_ACCENTS = [
-  '#FF4D00',
-  '#E76F51',
-  '#2A9D8F',
-  '#3A86FF',
-  '#8B5CF6',
-  '#F4A261',
-  '#06B6D4',
-  '#EF476F',
-] as const;
+const BRAND_ACCENT = '#ED4642';
 
 const NON_ALPHANUMERIC_PATTERN = /[^A-Za-z0-9\s]/g;
 const MULTISPACE_PATTERN = /\s+/g;
 
 export function getProjectAccent(projectId: string) {
-  const numericId = Number.parseInt(projectId, 10);
-
-  if (!Number.isNaN(numericId)) {
-    return PROJECT_ACCENTS[(numericId - 1) % PROJECT_ACCENTS.length];
-  }
-
-  return PROJECT_ACCENTS[0];
+  void projectId;
+  return BRAND_ACCENT;
 }
 
 export function getProjectInitials(name: string) {
@@ -45,4 +31,8 @@ export function getProjectSlug(name: string) {
     .toLowerCase();
 
   return normalizedName || 'project';
+}
+
+export function getProjectPath(name: string) {
+  return `/projects/${getProjectSlug(name)}/`;
 }

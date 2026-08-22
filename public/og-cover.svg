@@ -1,12 +1,12 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" fill="none">
-  <rect width="1200" height="630" fill="#F5F5F0" />
-  <rect x="36" y="36" width="1128" height="558" rx="28" stroke="#DDDDD8" stroke-width="2" />
-  <circle cx="132" cy="138" r="18" fill="#FF4D00" />
-  <text x="170" y="150" fill="#0A0A0A" font-family="'DM Mono', monospace" font-size="28" letter-spacing="6">MN.</text>
-  <text x="80" y="286" fill="#0A0A0A" font-family="'Instrument Serif', serif" font-size="92">Marco Niccolini</text>
-  <text x="80" y="358" fill="#6B6B6B" font-family="'DM Mono', monospace" font-size="28" letter-spacing="1.5">Full-stack software developer building fast, polished web experiences.</text>
-  <text x="80" y="412" fill="#6B6B6B" font-family="'DM Mono', monospace" font-size="24" letter-spacing="1.2">React / Next.js / Node.js / TypeScript</text>
-  <rect x="80" y="470" width="408" height="72" rx="36" fill="#EDEDEA" stroke="#DDDDD8" />
-  <circle cx="120" cy="506" r="10" fill="#FF4D00" />
-  <text x="148" y="515" fill="#0A0A0A" font-family="'DM Mono', monospace" font-size="24" letter-spacing="2">Freelance and product collaborations</text>
+  <rect width="1200" height="630" fill="#131515" />
+  <rect x="36" y="36" width="1128" height="558" stroke="#2B2C28" stroke-width="2" />
+  <circle cx="92" cy="92" r="12" fill="#7DE2D1" />
+  <text x="124" y="103" fill="#FFFAFB" font-family="'DM Mono', monospace" font-size="24" letter-spacing="5">MN. / PORTFOLIO</text>
+  <text x="80" y="296" fill="#FFFAFB" font-family="'Instrument Serif', Georgia, serif" font-size="106">Marco Niccolini</text>
+  <text x="80" y="371" fill="#7DE2D1" font-family="'DM Mono', monospace" font-size="25" letter-spacing="1.5">FULL-STACK DEVELOPER · FOUNDER OF SEMANTICS</text>
+  <text x="80" y="425" fill="#FFFAFB" opacity="0.72" font-family="'DM Mono', monospace" font-size="22" letter-spacing="1.2">SOFTWARE FOR INFRASTRUCTURE AND FIELD OPERATIONS</text>
+  <line x1="80" y1="492" x2="1120" y2="492" stroke="#339989" stroke-width="2" />
+  <text x="80" y="544" fill="#FFFAFB" opacity="0.72" font-family="'DM Mono', monospace" font-size="21" letter-spacing="2">MILANO, ITALY</text>
+  <text x="936" y="544" fill="#7DE2D1" font-family="'DM Mono', monospace" font-size="21" letter-spacing="2">2026</text>
 </svg>

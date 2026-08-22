@@ -1,63 +1,52 @@
-import { memo, useCallback, useState, type CSSProperties } from 'react';
+import { memo, useCallback, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { CV_OPTIONS } from '../../config/site';
 import { useClickOutside } from '../../hooks/useClickOutside';
 import { useEscapeKey } from '../../hooks/useEscapeKey';
-import { useRadialHover } from '../../hooks/useRadialHover';
+import { MotionIcon } from '../MotionIcon';
 
-function CvDropdownComponent() {
+interface CvDropdownProps {
+  variant?: 'desktop' | 'mobile';
+  onSelect?: () => void;
+}
+
+function Chevron({ open }: { open: boolean }) {
+  return (
+    <svg className={`cv-menu__chevron ${open ? 'is-open' : ''}`.trim()} viewBox="0 0 16 16" aria-hidden="true">
+      <path d="m3 6 5 5 5-5" />
+    </svg>
+  );
+}
+
+function CvDropdownComponent({ variant = 'desktop', onSelect }: CvDropdownProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const triggerRef = useRadialHover<HTMLButtonElement>();
-
-  const closeDropdown = useCallback(() => {
-    setIsOpen(false);
-  }, []);
-
+  const closeDropdown = useCallback(() => setIsOpen(false), []);
   const dropdownRef = useClickOutside<HTMLDivElement>(isOpen, closeDropdown);
 
   useEscapeKey(isOpen, closeDropdown);
 
   return (
-    <div className="relative" ref={dropdownRef}>
+    <div className={`cv-menu cv-menu--${variant} ${isOpen ? 'is-open' : ''}`.trim()} ref={dropdownRef}>
       <button
-        ref={triggerRef}
+        type="button"
+        className="cv-menu__trigger"
         onClick={() => setIsOpen((open) => !open)}
-        className="radial-hover-surface group flex items-center gap-2 rounded-full border px-4 py-2 font-mono text-[10px] uppercase tracking-[0.15em]"
-        style={{
-          ['--radial-fill' as string]: 'var(--color-accent)',
-          ['--radial-text' as string]: 'var(--color-text-primary)',
-          borderColor: 'var(--color-accent)',
-          color: 'var(--color-text-primary)',
-        } as CSSProperties}
         aria-expanded={isOpen}
+        aria-haspopup="menu"
       >
-        <span data-radial-fill className="radial-hover-fill" />
-        <span className="radial-hover-content flex items-center gap-2">
-          <span>Download CV</span>
-          <svg
-            className="h-3 w-3 transition-transform duration-200"
-            style={{ transform: isOpen ? 'rotate(180deg)' : 'none' }}
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-          </svg>
-        </span>
+        <span>{variant === 'mobile' ? 'Download CV' : 'CV'}</span>
+        <Chevron open={isOpen} />
       </button>
 
-      <AnimatePresence>
-        {isOpen && (
+      <AnimatePresence initial={false}>
+        {isOpen ? (
           <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            transition={{ duration: 0.2 }}
-            className="absolute top-full mt-2 right-0 py-2 rounded-xl border min-w-[140px]"
-            style={{
-              backgroundColor: 'var(--color-surface)',
-              borderColor: 'var(--color-border)',
-            }}
+            className="cv-menu__panel"
+            role="menu"
+            initial={{ clipPath: 'inset(0 0 100% 0)', opacity: 0 }}
+            animate={{ clipPath: 'inset(0 0 0% 0)', opacity: 1 }}
+            exit={{ clipPath: 'inset(0 0 100% 0)', opacity: 0 }}
+            transition={{ duration: 0.38, ease: [0.16, 1, 0.3, 1] }}
           >
             {CV_OPTIONS.map((option) => (
               <a
@@ -65,22 +54,21 @@ function CvDropdownComponent() {
                 href={option.href}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="block px-4 py-2 font-mono text-[10px] uppercase tracking-widest transition-colors duration-200 hover:opacity-70"
-                style={{
-                  color: option.tone === 'accent' ? 'var(--color-text-primary)' : 'var(--color-text-secondary)',
+                role="menuitem"
+                onClick={() => {
+                  closeDropdown();
+                  onSelect?.();
                 }}
-                onClick={closeDropdown}
               >
-                {option.label}
+                <span>{option.label}</span>
+                <MotionIcon direction="down" />
               </a>
             ))}
           </motion.div>
-        )}
+        ) : null}
       </AnimatePresence>
     </div>
   );
 }
 
-const CvDropdown = memo(CvDropdownComponent);
-
-export default CvDropdown;
+export default memo(CvDropdownComponent);

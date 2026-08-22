@@ -1,11 +1,11 @@
 import { memo } from 'react';
 
 const TICKER_ITEMS = [
-  "Pioltello (MI), Italy",
-  "Open to work",
-  "Full-Stack Developer",
-  "React • Next.js • Node.js",
-  "Available for freelance",
+  'Semantics — Milano',
+  'Quantara · railway operations',
+  'Kora · field collaboration',
+  'Full-stack development',
+  'React / TypeScript / Node.js',
 ];
 
 const itemsString = TICKER_ITEMS.join('  •  ');
@@ -15,6 +15,7 @@ function TickerComponent() {
     <div
       className="flex h-12 w-full flex-shrink-0 items-center overflow-hidden"
       style={{ backgroundColor: 'var(--color-accent)' }}
+      aria-hidden="true"
     >
       <div className="ticker-track">
         {[...Array(8)].map((_, i) => (
