@@ -6,6 +6,7 @@ import { useDialogFocus } from '../hooks/useDialogFocus';
 import { useEscapeKey } from '../hooks/useEscapeKey';
 import { CloseIcon, MotionIcon } from './MotionIcon';
 import ProjectVisual from './projects/ProjectVisual';
+import { renderSemanticsLinks } from '../utils/render-semantics-links';
 
 interface ProjectSheetProps {
   project: Project | null;
@@ -72,16 +73,16 @@ export default function ProjectSheet({ project, isOpen, onClose, returnFocusRef 
               <div className="project-detail__meta">
                 <span>{project.role}</span>
                 <span>{project.date}</span>
-                <span>{project.tags[0]}</span>
+                <span>{renderSemanticsLinks(project.tags[0])}</span>
               </div>
-              <p>{project.description}</p>
+              <p>{renderSemanticsLinks(project.description)}</p>
             </section>
 
             <section className="project-detail__outcomes">
               <h3>What changed.</h3>
               <ol>
                 {(project.outcomes?.length ? project.outcomes : [project.impact]).map((outcome, index) => (
-                  <li key={outcome}><span>{String(index + 1).padStart(2, '0')}</span>{outcome}</li>
+                  <li key={outcome}><span>{String(index + 1).padStart(2, '0')}</span>{renderSemanticsLinks(outcome)}</li>
                 ))}
               </ol>
             </section>
@@ -95,7 +96,7 @@ export default function ProjectSheet({ project, isOpen, onClose, returnFocusRef 
               </div>
               <aside>
                 <h3>Stack.</h3>
-                <ul>{project.tags.map((tag) => <li key={tag}>{tag}</li>)}</ul>
+                <ul>{project.tags.map((tag) => <li key={tag}>{renderSemanticsLinks(tag)}</li>)}</ul>
               </aside>
             </section>
 

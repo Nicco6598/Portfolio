@@ -4,8 +4,8 @@ const TICKER_ITEMS = [
   'Semantics — Milano',
   'Quantara · railway operations',
   'Kora · field collaboration',
-  'Full-stack development',
-  'React / TypeScript / Node.js',
+  'Founder · designer · engineer',
+  'Product / design / technology',
 ];
 
 const itemsString = TICKER_ITEMS.join('  •  ');

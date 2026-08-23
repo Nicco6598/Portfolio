@@ -19,11 +19,11 @@ export interface SocialLink {
 export const PERSON_NAME = 'Marco Niccolini';
 export const SITE_NAME = 'MN.';
 export const SITE_URL = 'https://www.marconiccolini.com';
-export const ROLE_LABEL = 'Full-Stack Developer';
-export const FOUNDER_LABEL = 'Founder & CEO of Semantics';
-export const SITE_TITLE = `${PERSON_NAME} — Full-Stack Developer & Founder`;
+export const ROLE_LABEL = 'Designer & Engineer';
+export const FOUNDER_LABEL = 'Founder of Semantics';
+export const SITE_TITLE = `${PERSON_NAME} — Founder of Semantics`;
 export const SITE_DESCRIPTION =
-  'Portfolio of Marco Niccolini, full-stack developer in Milan and founder of Semantics. Selected React, TypeScript, Web3 and railway software projects.';
+  'Portfolio of Marco Niccolini, founder of Semantics in Milan. Product design and software engineering, led and built end to end.';
 export const LOCATION_LABEL = 'Milano, Italy';
 export const AVAILABILITY_LABEL = 'Available for select freelance projects';
 export const SEMANTICS_URL = 'https://semantics-nu.vercel.app/';

@@ -61,7 +61,7 @@ function personSchema() {
       addressCountry: 'IT',
     },
     sameAs: SOCIAL_LINKS.map((link) => link.href),
-    knowsAbout: ['React', 'TypeScript', 'Next.js', 'Node.js', 'PostgreSQL', 'Solidity', 'Product Engineering'],
+    knowsAbout: ['Product Design', 'Product Engineering', 'React', 'TypeScript', 'Next.js', 'Node.js', 'PostgreSQL', 'Solidity'],
   };
 }
 

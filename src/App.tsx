@@ -218,7 +218,7 @@ function App() {
           <div className="grain-overlay" aria-hidden="true" />
           <Navbar onNavigate={navigateToSection} />
           <main id="main-content" tabIndex={-1}>
-            <Hero onProjectSelect={handleProjectSelect} isReady={isAppRevealed} />
+            <Hero isReady={isAppRevealed} />
             <ProjectList onProjectSelect={handleProjectSelect} />
             <About />
             <Contact onNavigate={navigateToSection} />

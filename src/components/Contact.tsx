@@ -1,5 +1,6 @@
 import { CURRENT_YEAR, CV_OPTIONS, EMAIL, LOCATION_LABEL, PERSON_NAME, SOCIAL_LINKS } from '../config/site';
 import { MotionIcon } from './MotionIcon';
+import { SemanticsLink } from './SemanticsLink';
 
 interface ContactProps {
   onNavigate?: (section: string) => void;
@@ -25,9 +26,13 @@ export default function Contact({ onNavigate }: ContactProps) {
 
           <nav className="site-footer__socials" aria-label="Social links">
             {SOCIAL_LINKS.map((link) => (
-              <a className="motion-link" key={link.label} href={link.href} target="_blank" rel="noopener noreferrer">
-                <span>{link.label}</span><MotionIcon />
-              </a>
+              link.label === 'Semantics' ? (
+                <SemanticsLink key={link.label} />
+              ) : (
+                <a className="motion-link" key={link.label} href={link.href} target="_blank" rel="noopener noreferrer">
+                  <span>{link.label}</span><MotionIcon />
+                </a>
+              )
             ))}
           </nav>
 
