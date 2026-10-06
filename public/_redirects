@@ -1,0 +1,10 @@
+# Old case-study URLs from the previous site.
+/projects/quantara/ /work/quantara/ 301
+/projects/quantara /work/quantara/ 301
+/projects/halion/ /work/halion/ 301
+/projects/halion /work/halion/ 301
+/projects/scandellari/ /work/scandellari/ 301
+/projects/scandellari /work/scandellari/ 301
+/projects/bombyx-menu/ /work/bombyx/ 301
+/projects/bombyx-menu /work/bombyx/ 301
+/projects/* / 301
