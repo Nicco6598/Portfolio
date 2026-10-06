@@ -1,0 +1,1556 @@
+/* Tokens ----------------------------------------------------------------- */
+
+:root {
+  --ballast: #0b0b0a;
+  --paper: #edebe6;
+  --signal: #f5b700;
+  /* Semantics brand, taken from the company's own stylesheet. */
+  --semantics: #b52e27;
+  --semantics-paper: #f4f1eb;
+
+  --bg: var(--ballast);
+  --fg: var(--paper);
+
+  --gutter: clamp(16px, 3vw, 40px);
+  /* The grid every layout snaps to, and the one blueprint mode draws: 12 columns, gutter gaps. */
+  --columns: 12;
+  --grid: repeat(var(--columns), minmax(0, 1fr));
+  --section: clamp(120px, 20vh, 240px);
+  --radius: clamp(18px, 1.8vw, 28px);
+
+  --font: 'Host Grotesk Variable', -apple-system, system-ui, sans-serif;
+  --mono: 'Geist Mono Variable', ui-monospace, monospace;
+
+  --ease-rail: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-switch: cubic-bezier(0.87, 0, 0.13, 1);
+}
+
+/* Colour blocks: every section owns its colours, so the edges between them scroll with
+   the content. Nothing is animated globally: a theme change costs nothing at runtime.
+   The derived tones are declared here, not on :root, so they mix this section's colours. */
+:root,
+[data-section-theme] {
+  --muted: color-mix(in srgb, var(--fg) 56%, var(--bg));
+  --hairline: color-mix(in srgb, var(--fg) 14%, var(--bg));
+  --raised: color-mix(in srgb, var(--fg) 7%, var(--bg));
+}
+
+[data-section-theme] {
+  background: var(--bg);
+  color: var(--fg);
+}
+
+/* Dark blocks stay see-through: the rope lives on the canvas behind them. */
+[data-section-theme='dark'] {
+  --bg: var(--ballast);
+  --fg: var(--paper);
+  background: transparent;
+}
+
+[data-section-theme='paper'] {
+  --bg: var(--paper);
+  --fg: var(--ballast);
+}
+
+[data-section-theme='semantics'] {
+  --bg: var(--semantics);
+  --fg: var(--semantics-paper);
+}
+
+[data-section-theme='case'] {
+  --bg: var(--case-bg, var(--ballast));
+  --fg: var(--case-ink, var(--paper));
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  /* Safety net against sideways scroll on phones. clip, unlike hidden, keeps sticky working. */
+  overflow-x: clip;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font);
+  font-size: 17px;
+  line-height: 1.45;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+img {
+  display: block;
+  max-width: 100%;
+}
+
+picture {
+  display: contents;
+}
+
+::selection {
+  background: var(--signal);
+  color: var(--ballast);
+}
+
+:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 4px;
+  border-radius: 4px;
+}
+
+/* Stage ------------------------------------------------------------------ */
+
+.stage {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  /* The studio: a soft pool of light behind the rope, falling off to ballast. */
+  background: radial-gradient(120% 90% at 50% 38%, #1c1c1a 0%, #121211 38%, var(--ballast) 72%);
+  transition: opacity 0.9s var(--ease-switch);
+}
+
+
+main {
+  position: relative;
+  z-index: 1;
+}
+
+/* Masthead --------------------------------------------------------------- */
+
+.masthead {
+  position: fixed;
+  inset: 0 0 auto;
+  z-index: 20;
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: var(--gutter);
+  font-size: 15px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  transition: transform 0.7s var(--ease-rail);
+}
+
+.masthead--away {
+  transform: translateY(-110%);
+}
+
+.masthead nav {
+  display: flex;
+  gap: 28px;
+}
+
+.masthead nav a,
+.masthead__name {
+  position: relative;
+}
+
+.masthead__name,
+.masthead nav,
+.masthead__menu {
+  transition: color 0.35s var(--ease-rail);
+}
+
+.masthead nav a::after,
+.masthead__name::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -3px;
+  height: 1px;
+  background: currentColor;
+  transform: scaleX(0);
+  transform-origin: right;
+  transition: transform 0.5s var(--ease-rail);
+}
+
+.masthead nav a:hover::after,
+.masthead__name:hover::after {
+  transform: scaleX(1);
+  transform-origin: left;
+}
+
+/* The current section keeps its underline, with a small marker in front. */
+.masthead nav a[aria-current]::after {
+  transform: scaleX(1);
+}
+
+.masthead nav a[aria-current]::before {
+  content: '';
+  position: absolute;
+  left: -12px;
+  top: 50%;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: currentColor;
+  transform: translateY(-50%);
+}
+
+.masthead__menu {
+  display: none;
+  min-height: 44px;
+  margin: -12px -12px -12px 0;
+  padding: 0 12px;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  letter-spacing: inherit;
+  cursor: pointer;
+}
+
+/* Over the open menu the masthead takes the menu's ink. */
+.masthead--menu > * {
+  color: var(--ballast) !important;
+}
+
+@media (max-width: 760px) {
+  :root {
+    --columns: 4;
+  }
+}
+
+@media (max-width: 640px) {
+  .masthead {
+    align-items: center;
+  }
+
+  .masthead nav {
+    display: none;
+  }
+
+  .masthead__menu {
+    display: block;
+  }
+}
+
+.menu {
+  position: fixed;
+  inset: 0;
+  z-index: 19;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: calc(var(--gutter) * 6) var(--gutter) calc(var(--gutter) + env(safe-area-inset-bottom));
+  background: var(--paper);
+  color: var(--ballast);
+}
+
+.menu[hidden] {
+  display: none;
+}
+
+.menu__links {
+  display: flex;
+  flex-direction: column;
+}
+
+.menu__links a {
+  position: relative;
+  display: block;
+  font-size: clamp(56px, 17vw, 120px);
+  font-weight: 650;
+  line-height: 0.95;
+  letter-spacing: -0.06em;
+}
+
+.menu__links a[data-current] {
+  color: var(--semantics);
+}
+
+.menu__foot {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 16px;
+  font-size: 17px;
+}
+
+.menu__foot a {
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+/* Curtain (page transitions) and loader ---------------------------------- */
+
+.curtain {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  background: var(--curtain, var(--ballast));
+  transform: translateY(100%);
+  pointer-events: none;
+}
+
+html[data-curtain] .curtain {
+  transform: none;
+}
+
+.loader {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: grid;
+  place-items: center;
+  background: var(--ballast);
+}
+
+html[data-curtain] .loader {
+  display: none;
+}
+
+.loader__board {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 4px;
+  padding: 0 var(--gutter);
+}
+
+.flap-tile {
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  width: clamp(22px, 4.2vw, 56px);
+  height: clamp(32px, 6vw, 80px);
+  overflow: hidden;
+  border-radius: 6px;
+  background: #1d1d1a;
+  color: var(--paper);
+  font: 500 clamp(18px, 3.4vw, 46px) / 1 var(--mono);
+}
+
+.flap-tile::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: 1px;
+  background: var(--ballast);
+  opacity: 0.8;
+}
+
+.flap-tile--space {
+  background: transparent;
+}
+
+/* Cursor ------------------------------------------------------------------ */
+
+.cursor {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 70;
+  display: grid;
+  place-items: center;
+  height: 44px;
+  padding: 0 20px;
+  border-radius: 999px;
+  background: var(--cursor-bg, var(--ballast));
+  color: var(--cursor-fg, var(--paper));
+  font-size: 15px;
+  font-weight: 500;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+}
+
+@media (hover: none), (pointer: coarse) {
+  .cursor {
+    display: none;
+  }
+}
+
+/* Type -------------------------------------------------------------------- */
+
+.display {
+  margin: 0;
+  font-size: clamp(64px, 13vw, 260px);
+  font-weight: 650;
+  line-height: 0.86;
+  letter-spacing: -0.06em;
+}
+
+.section-title {
+  margin: 0;
+  font-size: clamp(44px, 10.5vw, 200px);
+  font-weight: 650;
+  line-height: 0.88;
+  letter-spacing: -0.06em;
+}
+
+.lede {
+  max-width: 30ch;
+  margin: 0;
+  font-size: clamp(21px, 2vw, 30px);
+  line-height: 1.22;
+  letter-spacing: -0.025em;
+}
+
+.mono {
+  font: 400 13px / 1.35 var(--mono);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+/* Room for descenders (y, p, g) inside the reveal masks. */
+.char-mask,
+.line-mask {
+  padding-bottom: 0.2em;
+  margin-bottom: -0.2em;
+}
+
+/* Hero -------------------------------------------------------------------- */
+
+.hero {
+  height: 340vh;
+}
+
+.hero__pin {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  height: 100svh;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.headline {
+  position: absolute;
+  left: var(--gutter);
+  right: var(--gutter);
+  margin: 0;
+  font-size: clamp(60px, 12.5vw, 240px);
+  font-weight: 650;
+  line-height: 0.86;
+  letter-spacing: -0.062em;
+}
+
+.headline--work {
+  bottom: var(--gutter);
+}
+
+.headline--systems {
+  top: calc(var(--gutter) * 2 + 24px);
+}
+
+/* Manifesto ---------------------------------------------------------------- */
+
+.manifesto {
+  min-height: 100vh;
+  display: grid;
+  align-items: center;
+  padding: var(--section) var(--gutter);
+}
+
+.manifesto__text {
+  max-width: 19ch;
+  margin: 0;
+  font-size: clamp(38px, 5.6vw, 104px);
+  font-weight: 550;
+  line-height: 0.98;
+  letter-spacing: -0.045em;
+}
+
+.manifesto__text .word {
+  opacity: 0.14;
+}
+
+/* Work -------------------------------------------------------------------- */
+
+.work {
+  padding: var(--section) var(--gutter);
+}
+
+.work__head {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 8px 24px;
+  margin-bottom: clamp(56px, 8vw, 120px);
+}
+
+.work__count {
+  font-size: clamp(44px, 10.5vw, 200px);
+  font-weight: 650;
+  line-height: 0.88;
+  letter-spacing: -0.06em;
+  font-variant-numeric: tabular-nums;
+  color: var(--muted);
+}
+
+.covers {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: clamp(56px, 8vw, 120px) var(--gutter);
+}
+
+.cover {
+  grid-column: span 12;
+  display: block;
+}
+
+.cover:nth-child(4n + 2),
+.cover:nth-child(4n + 3) {
+  grid-column: span 6;
+}
+
+.cover:nth-child(4n + 3) {
+  margin-top: clamp(80px, 16vw, 280px);
+}
+
+.cover__media {
+  position: relative;
+  margin: 0;
+  overflow: hidden;
+  border-radius: var(--radius);
+  aspect-ratio: 16 / 8.5;
+  /* Dark like every photo it holds, so the masthead's light ink reads even before it loads. */
+  background: #1d1d1a;
+  transform: translateZ(0);
+}
+
+.cover:nth-child(4n + 2) .cover__media,
+.cover:nth-child(4n + 3) .cover__media {
+  aspect-ratio: 4 / 5;
+}
+
+.cover__media img {
+  position: absolute;
+  left: 0;
+  top: -8%;
+  width: 100%;
+  height: 116%;
+  object-fit: cover;
+  will-change: transform;
+}
+
+.cover__zoom {
+  position: absolute;
+  inset: 0;
+  transition: transform 1.4s var(--ease-rail);
+}
+
+.cover:hover .cover__zoom {
+  transform: scale(1.045);
+}
+
+.cover__info {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 6px 24px;
+  margin-top: 22px;
+}
+
+.cover__name {
+  margin: 0;
+  font-size: clamp(36px, 4.6vw, 84px);
+  font-weight: 600;
+  line-height: 0.95;
+  letter-spacing: -0.045em;
+}
+
+.cover__meta {
+  align-self: start;
+  padding-top: 0.6em;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.cover__tagline {
+  grid-column: 1 / -1;
+  margin: 0;
+  font-size: clamp(18px, 1.5vw, 22px);
+  letter-spacing: -0.015em;
+  color: var(--muted);
+}
+
+@media (max-width: 760px) {
+  .cover:nth-child(n) {
+    grid-column: span 12;
+    margin-top: 0;
+  }
+
+  .cover:nth-child(n) .cover__media {
+    aspect-ratio: 4 / 4.4;
+  }
+
+  .cover__info {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .cover__meta {
+    padding-top: 0;
+    order: -1;
+  }
+}
+
+/* Semantics --------------------------------------------------------------- */
+
+.semantics {
+  padding: var(--section) var(--gutter);
+}
+
+.semantics__intro {
+  display: grid;
+  grid-template-columns: var(--grid);
+  gap: var(--gutter);
+  align-items: end;
+}
+
+.semantics__intro > :first-child {
+  grid-column: span 7;
+}
+
+.semantics__intro > .lede {
+  grid-column: span 5;
+}
+
+.cards {
+  display: grid;
+  grid-template-columns: var(--grid);
+  gap: var(--gutter);
+  margin: clamp(56px, 8vw, 112px) 0 40px;
+}
+
+.card {
+  position: relative;
+  grid-column: span 5;
+  display: flex;
+  min-height: clamp(380px, 42vw, 600px);
+  overflow: hidden;
+  border-radius: var(--radius);
+  background: var(--ballast);
+  color: var(--paper);
+  isolation: isolate;
+}
+
+.card--quantara {
+  grid-column: span 7;
+}
+
+.card--quantara img {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.6;
+  transition: transform 1.4s var(--ease-rail), opacity 1.4s var(--ease-rail);
+}
+
+.card--quantara::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(to top, rgba(11, 11, 10, 0.94) 12%, rgba(11, 11, 10, 0.05));
+}
+
+.card--quantara:hover img {
+  transform: scale(1.04);
+  opacity: 0.75;
+}
+
+.card__body {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  width: 100%;
+  padding: clamp(24px, 3vw, 44px);
+}
+
+.card h3 {
+  margin: 0 0 auto;
+  font-size: 22px;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+}
+
+.card__figure {
+  margin: 0;
+  font-size: clamp(140px, 16vw, 260px);
+  font-weight: 650;
+  line-height: 0.82;
+  letter-spacing: -0.07em;
+  font-variant-numeric: tabular-nums;
+}
+
+.card__text {
+  max-width: 20ch;
+  margin: 14px 0 0;
+  font-size: clamp(20px, 1.7vw, 26px);
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+}
+
+.card__statement {
+  max-width: 14ch;
+  margin: 0;
+  font-size: clamp(32px, 3.4vw, 56px);
+  font-weight: 550;
+  line-height: 1;
+  letter-spacing: -0.045em;
+}
+
+.card__foot {
+  margin-top: 28px;
+  color: #8a8780;
+}
+
+.card--quantara .card__foot {
+  color: var(--signal);
+}
+
+@media (max-width: 860px) {
+  .semantics__intro > *,
+  .cards > * {
+    grid-column: 1 / -1;
+  }
+
+  .semantics__intro {
+    gap: 28px;
+  }
+}
+
+.button {
+  display: inline-flex;
+  align-items: center;
+  height: 54px;
+  padding: 0 28px;
+  border-radius: 999px;
+  background: var(--fg);
+  color: var(--bg);
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  position: relative;
+  overflow: hidden;
+  transition:
+    background-color 0.5s var(--ease-rail),
+    color 0.5s var(--ease-rail),
+    transform 0.6s var(--ease-rail);
+}
+
+.button__roll {
+  position: relative;
+  display: block;
+  line-height: 54px;
+  transition: transform 0.6s var(--ease-rail);
+}
+
+.button__roll::after {
+  content: attr(data-label);
+  position: absolute;
+  left: 0;
+  top: 100%;
+}
+
+.button:hover {
+  background: var(--ballast);
+  color: var(--paper);
+}
+
+.button:hover .button__roll {
+  transform: translateY(-100%);
+}
+
+.button:active {
+  transform: scale(0.97);
+}
+
+.button--ghost {
+  background: var(--raised);
+  color: var(--fg);
+}
+
+.button--ghost:hover {
+  background: var(--fg);
+  color: var(--bg);
+}
+
+/* About ------------------------------------------------------------------- */
+
+.about {
+  display: grid;
+  grid-template-columns: var(--grid);
+  gap: clamp(48px, 6vw, 96px) var(--gutter);
+  align-items: end;
+  padding: var(--section) var(--gutter);
+}
+
+.about__portrait {
+  grid-column: span 5;
+  margin: 0;
+  overflow: hidden;
+  border-radius: var(--radius);
+  aspect-ratio: 4 / 5;
+  background: #1d1d1a;
+}
+
+.about__portrait img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.about__text {
+  grid-column: 7 / -1;
+}
+
+.about .lede {
+  margin-top: 32px;
+  color: var(--muted);
+}
+
+/* Route: the career drawn as a railway line ------------------------------------- */
+
+.route {
+  --line-y: 168px;
+  --dot: 18px;
+  /* One column plus its gutter: stations sit exactly on column starts. */
+  --step: calc((100% + var(--gutter)) / 12);
+  position: relative;
+  grid-column: 1 / -1;
+  height: 260px;
+  /* The row gap above is enough; labels already sit high above the line. */
+  margin-top: -24px;
+}
+
+.route__stops {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.route__track {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: calc(var(--line-y) - 1px);
+  height: 2px;
+  background: var(--hairline);
+}
+
+.route__drawn {
+  position: absolute;
+  inset: 0;
+  background: var(--fg);
+  transform: scaleX(0);
+  transform-origin: left;
+  will-change: transform;
+}
+
+/* Past the terminus the line keeps running: work that cannot stop. The dashes are a
+   wider strip sliding by one period, so the loop is a pure transform on the compositor,
+   and it only plays while the line is on screen. */
+.route__live {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: calc(var(--step) * 8 + var(--dot));
+  right: 0;
+  overflow: hidden;
+  opacity: 0;
+  transition: opacity 0.6s var(--ease-rail);
+}
+
+.route__live::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -20px;
+  right: 0;
+  background: repeating-linear-gradient(to right, var(--semantics) 0 10px, transparent 10px 20px);
+  animation: route-live 0.9s linear infinite paused;
+  will-change: transform;
+}
+
+.route.is-arrived .route__live {
+  opacity: 1;
+}
+
+.route.is-arrived.is-visible .route__live::before {
+  animation-play-state: running;
+}
+
+@keyframes route-live {
+  to {
+    transform: translateX(20px);
+  }
+}
+
+.route__train {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 16px;
+  height: 16px;
+  margin-left: -8px;
+  transform: translate3d(0, -50%, 0);
+  border-radius: 50%;
+  background: var(--signal);
+  border: 2px solid var(--ballast);
+  box-shadow: 0 0 0 6px color-mix(in srgb, var(--signal) 22%, transparent);
+  will-change: transform;
+}
+
+.route__station,
+.route__stop {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: calc(var(--step) * var(--k));
+  width: calc(var(--step) * 4 - var(--gutter));
+}
+
+.route__stop {
+  width: calc(var(--step) - var(--gutter));
+}
+
+.route__dot {
+  position: absolute;
+  left: 0;
+  top: calc(var(--line-y) - var(--dot) / 2);
+  width: var(--dot);
+  height: var(--dot);
+  box-sizing: border-box;
+  border-radius: 50%;
+  border: 2px solid var(--fg);
+  background: var(--bg);
+  transition: background-color 0.4s var(--ease-rail), transform 0.5s var(--ease-rail), border-color 0.4s;
+}
+
+.route__stop .route__dot {
+  --dot: 10px;
+  left: 4px;
+  top: calc(var(--line-y) - 5px);
+}
+
+.is-passed > .route__dot {
+  background: var(--fg);
+}
+
+.route__station--terminus.is-passed > .route__dot {
+  background: var(--semantics);
+  border-color: var(--semantics);
+  transform: scale(1.25);
+}
+
+/* Station names above the line, stops below it. */
+.route__station .route__label {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: calc(100% - var(--line-y) + 28px);
+  display: grid;
+  gap: 6px;
+  opacity: 0.38;
+  transform: translateY(8px);
+  transition: opacity 0.6s var(--ease-rail), transform 0.8s var(--ease-rail);
+}
+
+.is-passed > .route__label {
+  opacity: 1;
+  transform: none;
+}
+
+.route__label time {
+  color: var(--muted);
+}
+
+.route__label strong {
+  font-size: clamp(22px, 2.2vw, 34px);
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: -0.035em;
+}
+
+.route__station .route__label > span {
+  font-size: clamp(15px, 1.2vw, 18px);
+  color: var(--muted);
+}
+
+.route__label a {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.route__stop .route__label {
+  position: absolute;
+  left: 9px;
+  top: calc(var(--line-y) + 16px);
+  white-space: nowrap;
+  color: var(--muted);
+  /* Slanted like the stop names on a transit map, so neighbours never collide. */
+  transform: rotate(32deg);
+  transform-origin: left top;
+  transition: color 0.3s;
+}
+
+.route__stop .route__label span {
+  opacity: 0.6;
+}
+
+.route__stop:hover .route__label,
+.route__stop .route__label:focus-visible {
+  color: var(--fg);
+}
+
+.route__stop:hover .route__dot {
+  transform: scale(1.5);
+}
+
+.route__next {
+  position: absolute;
+  right: 0;
+  top: calc(var(--line-y) + 22px);
+  color: var(--muted);
+  transition: color 0.3s;
+}
+
+.route__next:hover {
+  color: var(--fg);
+}
+
+/* Phones: the line runs down the page, labels beside it. */
+@media (max-width: 760px) {
+  .route {
+    height: auto;
+    padding-left: 40px;
+  }
+
+  .route__track {
+    left: 8px;
+    right: auto;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    height: auto;
+  }
+
+  .route__drawn {
+    transform: scaleY(0);
+    transform-origin: top;
+  }
+
+  .route__live {
+    display: none;
+  }
+
+  .route__train {
+    top: 0;
+    left: 50%;
+    margin: -8px 0 0;
+  }
+
+  .route__stops {
+    display: grid;
+    gap: 28px;
+    padding-bottom: 40px;
+  }
+
+  .route__station,
+  .route__stop {
+    position: relative;
+    left: auto;
+    width: auto;
+  }
+
+  .route__dot,
+  .route__stop .route__dot {
+    left: -40px;
+    top: 4px;
+  }
+
+  .route__stop .route__dot {
+    left: -36px;
+  }
+
+  .route__station .route__label,
+  .route__stop .route__label {
+    position: static;
+    transform: none;
+  }
+
+  .route__stop .route__label {
+    display: inline-block;
+  }
+
+  .route__next {
+    position: static;
+    display: inline-block;
+  }
+}
+
+@media (max-width: 860px) {
+  .about > * {
+    grid-column: 1 / -1;
+  }
+
+  .about__portrait {
+    max-width: 440px;
+  }
+}
+
+/* Contact ------------------------------------------------------------------ */
+
+.contact {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  padding: var(--section) var(--gutter) var(--gutter);
+}
+
+.contact__email {
+  align-self: flex-start;
+  margin-top: clamp(32px, 5vw, 64px);
+  font-size: clamp(26px, 3.8vw, 64px);
+  font-weight: 500;
+  letter-spacing: -0.035em;
+  background: linear-gradient(currentColor, currentColor) left bottom / 100% 2px no-repeat;
+  transition: background-size 0.7s var(--ease-rail);
+}
+
+.contact__email:hover {
+  background-size: 0% 2px;
+}
+
+.pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 40px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.pills a {
+  display: inline-flex;
+  align-items: center;
+  height: 46px;
+  padding: 0 22px;
+  border-radius: 999px;
+  background: var(--raised);
+  font-size: 15px;
+  font-weight: 500;
+  transition: background-color 0.3s, color 0.3s;
+}
+
+.pills a:hover {
+  background: var(--fg);
+  color: var(--bg);
+}
+
+.ledger {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 12px 24px;
+  margin-top: auto;
+  padding-top: clamp(80px, 12vw, 160px);
+  color: var(--muted);
+}
+
+
+/* Case study --------------------------------------------------------------- */
+
+.case-hero {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  min-height: 100vh;
+  min-height: 100svh;
+  padding: calc(var(--gutter) * 4) var(--gutter) var(--gutter);
+}
+
+/* One word, edge to edge: core/fit.ts measures the glyphs; this is the pre-script size. */
+.case-hero__title,
+.next__name {
+  font-size: min(24vw, calc(172vw / var(--chars, 8)));
+  letter-spacing: -0.05em;
+  white-space: nowrap;
+}
+
+.case-hero__tagline {
+  max-width: 22ch;
+  margin: clamp(20px, 2.4vw, 36px) 0 0;
+  font-size: clamp(24px, 2.8vw, 46px);
+  font-weight: 500;
+  line-height: 1.05;
+  letter-spacing: -0.035em;
+}
+
+.case-meta {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 24px var(--gutter);
+  margin: clamp(48px, 7vw, 104px) 0 0;
+  padding-top: 18px;
+  border-top: 1px solid var(--hairline);
+}
+
+.case-meta div {
+  display: grid;
+  gap: 6px;
+  align-content: start;
+}
+
+.case-meta dt {
+  color: var(--muted);
+}
+
+.case-meta dd {
+  margin: 0;
+  font-size: 16px;
+  line-height: 1.35;
+}
+
+@media (max-width: 760px) {
+  .case-meta {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.case-cover {
+  position: relative;
+  height: 100vh;
+  height: 100svh;
+  margin: 0;
+  overflow: hidden;
+  background: var(--raised);
+}
+
+.case-cover img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  will-change: transform;
+}
+
+.case-statement {
+  padding: var(--section) var(--gutter);
+}
+
+.case-statement p {
+  max-width: 21ch;
+  margin: 0;
+  font-size: clamp(36px, 5.2vw, 96px);
+  font-weight: 550;
+  line-height: 1;
+  letter-spacing: -0.045em;
+}
+
+.case-statement .word {
+  opacity: 0.14;
+}
+
+.case-block {
+  display: grid;
+  grid-template-columns: var(--grid);
+  gap: var(--gutter);
+  padding: 0 var(--gutter) var(--section);
+}
+
+.case-block h2 {
+  grid-column: span 4;
+  margin: 0;
+  font-size: clamp(22px, 1.8vw, 28px);
+  font-weight: 500;
+  letter-spacing: -0.02em;
+}
+
+.case-block__body {
+  grid-column: span 8;
+}
+
+.case-block__body > p {
+  max-width: 38ch;
+  margin: 0;
+  font-size: clamp(22px, 2vw, 32px);
+  line-height: 1.25;
+  letter-spacing: -0.025em;
+}
+
+.features {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: feature;
+}
+
+.features li {
+  display: grid;
+  grid-template-columns: 4.5rem minmax(0, 1fr);
+  padding: clamp(18px, 2vw, 28px) 0;
+  border-top: 1px solid var(--hairline);
+  font-size: clamp(22px, 2.2vw, 36px);
+  line-height: 1.1;
+  letter-spacing: -0.03em;
+  counter-increment: feature;
+}
+
+.features li::before {
+  content: counter(feature, decimal-leading-zero);
+  padding-top: 0.5em;
+  font: 400 13px / 1 var(--mono);
+  color: var(--muted);
+}
+
+@media (max-width: 760px) {
+  .case-block {
+    gap: 24px;
+  }
+
+  .case-block > * {
+    grid-column: 1 / -1;
+  }
+
+  .features li {
+    grid-template-columns: 3rem minmax(0, 1fr);
+  }
+}
+
+.case-duo {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--gutter);
+  padding: 0 var(--gutter) var(--section);
+}
+
+.case-duo > * {
+  position: relative;
+  min-height: clamp(420px, 48vw, 760px);
+  margin: 0;
+  overflow: hidden;
+  border-radius: var(--radius);
+}
+
+.case-duo__note {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: clamp(24px, 3vw, 44px);
+  background: var(--case-bg);
+  color: var(--case-ink);
+}
+
+.case-duo__note p {
+  max-width: 16ch;
+  margin: 0;
+  font-size: clamp(30px, 3.2vw, 56px);
+  font-weight: 550;
+  line-height: 1.02;
+  letter-spacing: -0.04em;
+}
+
+.case-duo__note span {
+  opacity: 0.6;
+}
+
+.case-duo img {
+  position: absolute;
+  inset: -6% 0;
+  width: 100%;
+  height: 112%;
+  object-fit: cover;
+  transform: scale(1.5);
+}
+
+@media (max-width: 760px) {
+  .case-duo {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.outcomes {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.outcomes li {
+  padding: clamp(28px, 3vw, 44px) 0;
+  border-top: 1px solid var(--hairline);
+  font-size: clamp(28px, 3.4vw, 60px);
+  font-weight: 550;
+  line-height: 1.02;
+  letter-spacing: -0.045em;
+}
+
+.case-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: clamp(40px, 5vw, 64px);
+}
+
+.next {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 100vh;
+  min-height: 100svh;
+  padding: calc(var(--gutter) * 4) var(--gutter) var(--gutter);
+  overflow: hidden;
+  background: var(--next-bg);
+  color: var(--next-ink);
+  isolation: isolate;
+}
+
+.next__label {
+  opacity: 0.6;
+}
+
+.next__name {
+  margin: 0;
+  font-weight: 650;
+  line-height: 0.84;
+  letter-spacing: -0.065em;
+  transition: transform 1s var(--ease-rail);
+}
+
+.next:hover .next__name {
+  transform: translateX(2vw);
+}
+
+.next .ledger {
+  color: inherit;
+  opacity: 0.6;
+  padding-top: 40px;
+  margin-top: 0;
+}
+
+/* Blueprint mode ------------------------------------------------------------ */
+
+.blueprint-grid {
+  position: fixed;
+  inset: 0 var(--gutter);
+  z-index: 60;
+  display: none;
+  pointer-events: none;
+  /* Drawn from the same tokens the layouts use, so the bars are the grid, not a picture of it. */
+  --column: calc((100% - (var(--columns) - 1) * var(--gutter)) / var(--columns));
+  background: repeating-linear-gradient(
+    to right,
+    rgba(122, 176, 255, 0.07) 0 var(--column),
+    transparent 0 calc(var(--column) + var(--gutter))
+  );
+}
+
+html.blueprint body,
+html.blueprint [data-section-theme] {
+  --bg: #0a1426;
+  --fg: #cfe0ff;
+  background: var(--bg);
+}
+
+html.blueprint [data-section-theme='dark'] {
+  background: transparent;
+}
+
+html.blueprint body {
+  color: var(--fg);
+}
+
+html.blueprint .blueprint-grid {
+  display: block;
+}
+
+html.blueprint [data-name] {
+  outline: 1px dashed rgba(122, 176, 255, 0.6);
+  outline-offset: -1px;
+}
+
+html.blueprint section[data-name],
+html.blueprint a[data-name] {
+  position: relative;
+}
+
+/* ::after, because several named blocks already draw with ::before (the card scrim, the career line). */
+html.blueprint [data-name]::after {
+  content: attr(data-name);
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 61;
+  padding: 2px 6px;
+  background: #7ab0ff;
+  color: #0a1426;
+  font: 500 10px / 1.4 var(--mono);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  pointer-events: none;
+}
+
+html.blueprint .stage {
+  opacity: 1;
+  background: none;
+}
+
+/* Misc ------------------------------------------------------------------------ */
+
+.fps {
+  position: fixed;
+  right: var(--gutter);
+  bottom: var(--gutter);
+  z-index: 95;
+  padding: 4px 8px;
+  border-radius: 6px;
+  background: rgba(11, 11, 10, 0.7);
+  color: #edebe6;
+  font: 12px var(--mono);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero {
+    height: 200vh;
+  }
+
+  :root {
+    transition: none;
+  }
+
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* A block that opens a new colour section needs its own top breathing room. */
+.case-block--first {
+  padding-top: var(--section);
+}
