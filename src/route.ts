@@ -1,51 +1,55 @@
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
+/** Where the train rides on screen: it holds this height while the line runs under it. */
+const READING_LINE = '62%';
+
 /**
- * The career line. A train runs from the first station to the terminus with the scroll;
- * every station and stop lights up as the train passes it.
+ * The career line. A train runs down from the first station to the terminus with the scroll,
+ * held at a fixed reading height; every station and stop lights up as the train passes it.
  *
- * Built for the scroll path: positions are measured once per layout, and each scroll
- * update writes two transforms (compositor only) plus a class only when a station
- * actually changes state. No layout reads, no inherited custom properties.
+ * Built for the scroll path: the rail is measured once per layout, and each scroll update
+ * writes two transforms (compositor only) plus a class only when a stop actually changes
+ * state. No layout reads in the loop.
  */
 export function setupRoute(route: HTMLElement, reducedMotion: boolean) {
   const track = route.querySelector<HTMLElement>('.route__track')!;
   const drawn = route.querySelector<HTMLElement>('.route__drawn')!;
+  const live = route.querySelector<HTMLElement>('.route__live')!;
   const train = route.querySelector<HTMLElement>('.route__train')!;
+  const next = route.querySelector<HTMLElement>('.route__next')!;
   const items = [...route.querySelectorAll<HTMLElement>('.route__station, .route__stop')];
-  const terminus = route.querySelector<HTMLElement>('.route__station--terminus')!;
-  const vertical = matchMedia('(max-width: 760px)');
+  const terminus = items.indexOf(route.querySelector<HTMLElement>('.route__station--terminus')!);
 
+  let top = 0;
+  let length = 1;
   let positions: number[] = [];
-  let length = 0;
-  let end = 1;
   const passed = items.map(() => false);
   let arrived = false;
 
+  // The rail runs from the first dot's centre to the terminus; the dashes carry on to the next departure.
   const measure = () => {
-    const box = track.getBoundingClientRect();
-    length = vertical.matches ? box.height : box.width;
-    positions = items.map((item) => {
-      const dot = item.querySelector('.route__dot')!.getBoundingClientRect();
-      return vertical.matches
-        ? (dot.top + dot.height / 2 - box.top) / box.height
-        : (dot.left + dot.width / 2 - box.left) / box.width;
-    });
-    end = positions[items.indexOf(terminus)];
+    const box = route.getBoundingClientRect();
+    const centre = (el: Element) => {
+      const rect = el.getBoundingClientRect();
+      return rect.top + rect.height / 2 - box.top;
+    };
+    const centres = items.map((item) => centre(item.querySelector('.route__dot')!));
+    top = centres[0];
+    length = Math.max(centres[terminus] - top, 1);
+    positions = centres.map((c) => (c - top) / length);
+
+    track.style.top = `${top}px`;
+    track.style.height = `${length}px`;
+    train.style.top = `${top}px`;
+    live.style.top = `${top + length}px`;
+    live.style.height = `${Math.max(centre(next) - top - length, 0)}px`;
   };
 
   const setProgress = (progress: number) => {
-    const p = progress * end;
-    const distance = (p * length).toFixed(1);
-    if (vertical.matches) {
-      drawn.style.transform = `scaleY(${p.toFixed(4)})`;
-      train.style.transform = `translate3d(-50%, ${distance}px, 0)`;
-    } else {
-      drawn.style.transform = `scaleX(${p.toFixed(4)})`;
-      train.style.transform = `translate3d(${distance}px, -50%, 0)`;
-    }
+    drawn.style.transform = `scaleY(${progress.toFixed(4)})`;
+    train.style.transform = `translate3d(0, ${(progress * length).toFixed(1)}px, 0)`;
     items.forEach((item, i) => {
-      const now = p >= positions[i] - 0.004;
+      const now = progress >= positions[i] - 0.004;
       if (now === passed[i]) return;
       passed[i] = now;
       item.classList.toggle('is-passed', now);
@@ -57,24 +61,31 @@ export function setupRoute(route: HTMLElement, reducedMotion: boolean) {
     }
   };
 
+  // Layout can move under the rail (fonts, resize): measure before every refresh.
+  ScrollTrigger.addEventListener('refreshInit', measure);
+  measure();
+
   if (reducedMotion) {
-    measure();
     setProgress(1);
+    ScrollTrigger.addEventListener('refresh', () => setProgress(1));
     return;
   }
 
+  // The rail's length is the scroll distance, so the train holds still on screen.
   const trigger = ScrollTrigger.create({
     trigger: route,
-    // The train leaves as the line enters and reaches the terminus around the middle of the screen.
-    start: 'top 80%',
-    end: () => (vertical.matches ? 'bottom 70%' : 'bottom 45%'),
-    onRefresh: (self) => {
-      measure();
-      setProgress(self.progress);
-    },
+    start: () => `top+=${top} ${READING_LINE}`,
+    end: () => `top+=${top + length} ${READING_LINE}`,
+    onRefresh: (self) => setProgress(self.progress),
     onUpdate: (self) => setProgress(self.progress),
-    // The endless dashes past the terminus only run while the line is on screen.
+  });
+
+  // The endless dashes past the terminus only run while the line is on screen.
+  ScrollTrigger.create({
+    trigger: route,
+    start: 'top bottom',
+    end: 'bottom top',
     onToggle: (self) => route.classList.toggle('is-visible', self.isActive),
   });
-  route.classList.toggle('is-visible', trigger.isActive);
+  setProgress(trigger.progress);
 }

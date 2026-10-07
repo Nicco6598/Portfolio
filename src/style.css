@@ -227,7 +227,7 @@ main {
 
 /* Over the open menu the masthead takes the menu's ink. */
 .masthead--menu > * {
-  color: var(--ballast) !important;
+  color: var(--menu-fg) !important;
 }
 
 @media (max-width: 760px) {
@@ -258,8 +258,40 @@ main {
   flex-direction: column;
   justify-content: space-between;
   padding: calc(var(--gutter) * 6) var(--gutter) calc(var(--gutter) + env(safe-area-inset-bottom));
-  background: var(--paper);
-  color: var(--ballast);
+  background: var(--menu-bg);
+  color: var(--menu-fg);
+}
+
+/* The menu takes the colours of the block it opens over (set on open by nav.ts). */
+.menu,
+.masthead {
+  --menu-bg: var(--paper);
+  --menu-fg: var(--ballast);
+  --menu-link: var(--menu-fg);
+  --menu-accent: var(--semantics);
+}
+
+.menu[data-theme='dark'],
+.masthead[data-menu-theme='dark'] {
+  --menu-bg: var(--ballast);
+  --menu-fg: var(--paper);
+  --menu-accent: var(--signal);
+}
+
+.menu[data-theme='semantics'],
+.masthead[data-menu-theme='semantics'] {
+  --menu-bg: var(--semantics);
+  --menu-fg: var(--semantics-paper);
+  --menu-accent: var(--ballast);
+}
+
+/* Case colours vary: the current link keeps the ink, the others step back. */
+.menu[data-theme='case'],
+.masthead[data-menu-theme='case'] {
+  --menu-bg: var(--case-bg, var(--ballast));
+  --menu-fg: var(--case-ink, var(--paper));
+  --menu-link: color-mix(in srgb, var(--menu-fg) 55%, var(--menu-bg));
+  --menu-accent: var(--menu-fg);
 }
 
 .menu[hidden] {
@@ -278,10 +310,11 @@ main {
   font-weight: 650;
   line-height: 0.95;
   letter-spacing: -0.06em;
+  color: var(--menu-link);
 }
 
 .menu__links a[data-current] {
-  color: var(--semantics);
+  color: var(--menu-accent);
 }
 
 .menu__foot {
@@ -430,7 +463,14 @@ html[data-curtain] .loader {
 /* Hero -------------------------------------------------------------------- */
 
 .hero {
-  height: 340vh;
+  height: 250vh;
+}
+
+/* A thumb covers a screen in a short swipe: less runway is enough. */
+@media (max-width: 760px) {
+  .hero {
+    height: 220vh;
+  }
 }
 
 .hero__pin {
@@ -803,12 +843,16 @@ html[data-curtain] .loader {
   display: grid;
   grid-template-columns: var(--grid);
   gap: clamp(48px, 6vw, 96px) var(--gutter);
-  align-items: end;
+  align-items: start;
   padding: var(--section) var(--gutter);
 }
 
 .about__portrait {
   grid-column: span 5;
+  grid-row: 1 / span 2;
+  /* Holds still while the story and the line run past it. */
+  position: sticky;
+  top: calc(var(--gutter) * 2 + 24px);
   margin: 0;
   overflow: hidden;
   border-radius: var(--radius);
@@ -831,32 +875,59 @@ html[data-curtain] .loader {
   color: var(--muted);
 }
 
-/* Route: the career drawn as a railway line ------------------------------------- */
+/* Route: the career as a line on a station sign ----------------------------------- */
 
 .route {
-  --line-y: 168px;
-  --dot: 18px;
-  /* One column plus its gutter: stations sit exactly on column starts. */
-  --step: calc((100% + var(--gutter)) / 12);
+  --when: 104px;
+  --rail: 44px;
+  /* The rail's centre line: dots, track, train and the live dashes all hang on it. */
+  --rail-x: calc(var(--when) + var(--rail) / 2);
   position: relative;
-  grid-column: 1 / -1;
-  height: 260px;
-  /* The row gap above is enough; labels already sit high above the line. */
-  margin-top: -24px;
+  grid-column: 7 / -1;
 }
 
 .route__stops {
+  display: grid;
   margin: 0;
   padding: 0;
   list-style: none;
 }
 
+.route__station,
+.route__stop {
+  display: grid;
+  grid-template-columns: var(--when) var(--rail) minmax(0, 1fr);
+  grid-template-areas:
+    'when dot name'
+    '. . role';
+  align-items: center;
+  row-gap: 8px;
+}
+
+.route__station {
+  padding: 24px 0;
+}
+
+.route__station:first-child {
+  padding-top: 0;
+}
+
+.route__stop {
+  padding: 4px 0;
+}
+
+/* The track, the train and the dashes are drawn behind the rows, measured by script. */
+.route__rail {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
 .route__track {
   position: absolute;
-  left: 0;
-  right: 0;
-  top: calc(var(--line-y) - 1px);
-  height: 2px;
+  left: calc(var(--rail-x) - 1px);
+  top: 0;
+  width: 2px;
   background: var(--hairline);
 }
 
@@ -864,20 +935,18 @@ html[data-curtain] .loader {
   position: absolute;
   inset: 0;
   background: var(--fg);
-  transform: scaleX(0);
-  transform-origin: left;
+  transform: scaleY(0);
+  transform-origin: top;
   will-change: transform;
 }
 
 /* Past the terminus the line keeps running: work that cannot stop. The dashes are a
-   wider strip sliding by one period, so the loop is a pure transform on the compositor,
+   taller strip sliding by one period, so the loop is a pure transform on the compositor,
    and it only plays while the line is on screen. */
 .route__live {
   position: absolute;
-  top: 0;
-  bottom: 0;
-  left: calc(var(--step) * 8 + var(--dot));
-  right: 0;
+  left: calc(var(--rail-x) - 1px);
+  width: 2px;
   overflow: hidden;
   opacity: 0;
   transition: opacity 0.6s var(--ease-rail);
@@ -886,11 +955,8 @@ html[data-curtain] .loader {
 .route__live::before {
   content: '';
   position: absolute;
-  top: 0;
-  bottom: 0;
-  left: -20px;
-  right: 0;
-  background: repeating-linear-gradient(to right, var(--semantics) 0 10px, transparent 10px 20px);
+  inset: -20px 0 0;
+  background: repeating-linear-gradient(to bottom, var(--semantics) 0 8px, transparent 8px 20px);
   animation: route-live 0.9s linear infinite paused;
   will-change: transform;
 }
@@ -905,55 +971,48 @@ html[data-curtain] .loader {
 
 @keyframes route-live {
   to {
-    transform: translateX(20px);
+    transform: translateY(20px);
   }
 }
 
 .route__train {
   position: absolute;
-  top: 50%;
-  left: 0;
+  z-index: 2;
+  left: var(--rail-x);
+  top: 0;
   width: 16px;
   height: 16px;
-  margin-left: -8px;
-  transform: translate3d(0, -50%, 0);
+  margin: -8px 0 0 -8px;
   border-radius: 50%;
   background: var(--signal);
   border: 2px solid var(--ballast);
   box-shadow: 0 0 0 6px color-mix(in srgb, var(--signal) 22%, transparent);
+  transition: opacity 0.4s var(--ease-rail), scale 0.5s var(--ease-rail);
   will-change: transform;
 }
 
-.route__station,
-.route__stop {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: calc(var(--step) * var(--k));
-  width: calc(var(--step) * 4 - var(--gutter));
-}
-
-.route__stop {
-  width: calc(var(--step) - var(--gutter));
+/* Arrived: the train pulls in and the terminus takes over. */
+.route.is-arrived .route__train {
+  opacity: 0;
+  scale: 0.4;
 }
 
 .route__dot {
-  position: absolute;
-  left: 0;
-  top: calc(var(--line-y) - var(--dot) / 2);
-  width: var(--dot);
-  height: var(--dot);
-  box-sizing: border-box;
+  grid-area: dot;
+  justify-self: center;
+  position: relative;
+  z-index: 1;
+  width: 16px;
+  height: 16px;
   border-radius: 50%;
   border: 2px solid var(--fg);
   background: var(--bg);
-  transition: background-color 0.4s var(--ease-rail), transform 0.5s var(--ease-rail), border-color 0.4s;
+  transition: background-color 0.4s var(--ease-rail), border-color 0.4s, transform 0.5s var(--ease-rail);
 }
 
 .route__stop .route__dot {
-  --dot: 10px;
-  left: 4px;
-  top: calc(var(--line-y) - 5px);
+  width: 10px;
+  height: 10px;
 }
 
 .is-passed > .route__dot {
@@ -963,77 +1022,73 @@ html[data-curtain] .loader {
 .route__station--terminus.is-passed > .route__dot {
   background: var(--semantics);
   border-color: var(--semantics);
-  transform: scale(1.25);
+  transform: scale(1.3);
 }
 
-/* Station names above the line, stops below it. */
-.route__station .route__label {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: calc(100% - var(--line-y) + 28px);
-  display: grid;
-  gap: 6px;
-  opacity: 0.38;
-  transform: translateY(8px);
-  transition: opacity 0.6s var(--ease-rail), transform 0.8s var(--ease-rail);
-}
-
-.is-passed > .route__label {
-  opacity: 1;
-  transform: none;
-}
-
-.route__label time {
+/* Everything stays readable: the scroll only lights the dots and the dates. */
+.route__when {
+  grid-area: when;
   color: var(--muted);
+  transition: color 0.4s;
 }
 
-.route__label strong {
-  font-size: clamp(22px, 2.2vw, 34px);
+.is-passed > .route__when {
+  color: var(--fg);
+}
+
+.route__name {
+  grid-area: name;
+}
+
+.route__station .route__name {
+  font-size: clamp(24px, 2.4vw, 36px);
   font-weight: 600;
   line-height: 1;
   letter-spacing: -0.035em;
 }
 
-.route__station .route__label > span {
+.route__role {
+  grid-area: role;
   font-size: clamp(15px, 1.2vw, 18px);
   color: var(--muted);
 }
 
-.route__label a {
+.route__role a {
+  color: var(--fg);
   text-decoration: underline;
   text-underline-offset: 3px;
 }
 
-.route__stop .route__label {
-  position: absolute;
-  left: 9px;
-  top: calc(var(--line-y) + 16px);
-  white-space: nowrap;
-  color: var(--muted);
-  /* Slanted like the stop names on a transit map, so neighbours never collide. */
-  transform: rotate(32deg);
-  transform-origin: left top;
-  transition: color 0.3s;
+/* Stops are the work: links, with the arrow of a connection on hover. */
+.route__stop .route__name {
+  justify-self: start;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 0;
 }
 
-.route__stop .route__label span {
-  opacity: 0.6;
+.route__stop .route__name::after {
+  content: '→';
+  opacity: 0;
+  transform: translateX(-6px);
+  transition: opacity 0.3s, transform 0.4s var(--ease-rail);
 }
 
-.route__stop:hover .route__label,
-.route__stop .route__label:focus-visible {
-  color: var(--fg);
+.route__stop .route__name:hover::after,
+.route__stop .route__name:focus-visible::after {
+  opacity: 1;
+  transform: none;
 }
 
 .route__stop:hover .route__dot {
-  transform: scale(1.5);
+  transform: scale(1.4);
 }
 
 .route__next {
-  position: absolute;
-  right: 0;
-  top: calc(var(--line-y) + 22px);
+  display: inline-block;
+  margin: 28px 0 0 calc(var(--when) + var(--rail));
+  padding: 8px 0;
   color: var(--muted);
   transition: color 0.3s;
 }
@@ -1042,73 +1097,28 @@ html[data-curtain] .loader {
   color: var(--fg);
 }
 
-/* Phones: the line runs down the page, labels beside it. */
+/* Phones: the dates move above the names, the rail takes the first column. */
 @media (max-width: 760px) {
   .route {
-    height: auto;
-    padding-left: 40px;
+    --rail: 32px;
+    --rail-x: calc(var(--rail) / 2);
   }
 
-  .route__track {
-    left: 8px;
-    right: auto;
-    top: 0;
-    bottom: 0;
-    width: 2px;
-    height: auto;
+  .route__station {
+    grid-template-columns: var(--rail) minmax(0, 1fr);
+    grid-template-areas:
+      '. when'
+      'dot name'
+      '. role';
   }
 
-  .route__drawn {
-    transform: scaleY(0);
-    transform-origin: top;
-  }
-
-  .route__live {
-    display: none;
-  }
-
-  .route__train {
-    top: 0;
-    left: 50%;
-    margin: -8px 0 0;
-  }
-
-  .route__stops {
-    display: grid;
-    gap: 28px;
-    padding-bottom: 40px;
-  }
-
-  .route__station,
   .route__stop {
-    position: relative;
-    left: auto;
-    width: auto;
-  }
-
-  .route__dot,
-  .route__stop .route__dot {
-    left: -40px;
-    top: 4px;
-  }
-
-  .route__stop .route__dot {
-    left: -36px;
-  }
-
-  .route__station .route__label,
-  .route__stop .route__label {
-    position: static;
-    transform: none;
-  }
-
-  .route__stop .route__label {
-    display: inline-block;
+    grid-template-columns: var(--rail) 40px minmax(0, 1fr);
+    grid-template-areas: 'dot when name';
   }
 
   .route__next {
-    position: static;
-    display: inline-block;
+    margin-left: var(--rail);
   }
 }
 
@@ -1118,6 +1128,8 @@ html[data-curtain] .loader {
   }
 
   .about__portrait {
+    position: static;
+    grid-row: auto;
     max-width: 440px;
   }
 }

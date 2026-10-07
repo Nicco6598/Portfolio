@@ -34,6 +34,8 @@
       } catch {}
     </script>
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <!-- The display face, fetched with the HTML: the headlines are split and measured on it. -->
+    <link rel="preload" href="/node_modules/@fontsource-variable/host-grotesk/files/host-grotesk-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="stylesheet" href="/src/style.css" />
   </head>
   <body>
@@ -137,50 +139,47 @@
           </p>
         </div>
 
-        <!-- The career as a railway line: three stations, the work as stops between them,
-             Semantics as the terminus. A train runs it with the scroll. -->
+        <!-- The career as a line on a station sign: stations, the work as stops between them,
+             Semantics as the terminus. A train runs down it with the scroll. -->
         <nav class="route" aria-label="Career line" data-route data-name="Route">
-          <div class="route__track" aria-hidden="true">
-            <span class="route__drawn"></span>
+          <div class="route__rail" aria-hidden="true">
+            <span class="route__track"><span class="route__drawn"></span></span>
             <span class="route__live"></span>
             <span class="route__train"></span>
           </div>
           <ol class="route__stops">
-            <li class="route__station" style="--k: 0">
+            <li class="route__station">
               <span class="route__dot" aria-hidden="true"></span>
-              <div class="route__label">
-                <time class="mono">Until 2024</time>
-                <strong>Capgemini Engineering</strong>
-                <span>Software engineer</span>
-              </div>
+              <time class="route__when mono">Until 2024</time>
+              <strong class="route__name">Capgemini Engineering</strong>
+              <span class="route__role">Software engineer</span>
             </li>
-            <li class="route__station" style="--k: 4">
+            <li class="route__station">
               <span class="route__dot" aria-hidden="true"></span>
-              <div class="route__label">
-                <time class="mono">2024 — 2026</time>
-                <strong>Independent</strong>
-                <span>Products, end to end</span>
-              </div>
+              <time class="route__when mono">2024 — 2026</time>
+              <strong class="route__name">Independent</strong>
+              <span class="route__role">Products, end to end</span>
             </li>
-            <li class="route__stop" style="--k: 5">
+            <li class="route__stop">
               <span class="route__dot" aria-hidden="true"></span>
-              <a class="route__label mono" href="/work/bombyx/">Bombyx <span>’24</span></a>
+              <time class="route__when mono">’24</time>
+              <a class="route__name mono" href="/work/bombyx/">Bombyx</a>
             </li>
-            <li class="route__stop" style="--k: 6">
+            <li class="route__stop">
               <span class="route__dot" aria-hidden="true"></span>
-              <a class="route__label mono" href="/work/scandellari/">Scandellari <span>’25</span></a>
+              <time class="route__when mono">’25</time>
+              <a class="route__name mono" href="/work/scandellari/">Scandellari</a>
             </li>
-            <li class="route__stop" style="--k: 7">
+            <li class="route__stop">
               <span class="route__dot" aria-hidden="true"></span>
-              <a class="route__label mono" href="/work/halion/">Halion <span>’26</span></a>
+              <time class="route__when mono">’26</time>
+              <a class="route__name mono" href="/work/halion/">Halion</a>
             </li>
-            <li class="route__station route__station--terminus" style="--k: 8">
+            <li class="route__station route__station--terminus">
               <span class="route__dot" aria-hidden="true"></span>
-              <div class="route__label">
-                <time class="mono">2026 —</time>
-                <strong>Semantics</strong>
-                <span>Founder. <a href="/work/quantara/">Quantara</a> in service.</span>
-              </div>
+              <time class="route__when mono">2026 —</time>
+              <strong class="route__name">Semantics</strong>
+              <span class="route__role">Founder. <a href="/work/quantara/">Quantara</a> in service.</span>
             </li>
           </ol>
           <a class="route__next mono" href="#contact">Next departure →</a>
