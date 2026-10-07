@@ -1,4 +1,3 @@
-import * as THREE from 'three';
 import { ROPE_RADIUS, solveRope, type RopePose } from './rope-path';
 
 /**
@@ -12,6 +11,7 @@ import { ROPE_RADIUS, solveRope, type RopePose } from './rope-path';
  * CPU each frame (900 samples, well under a millisecond) and handed to the GPU as two
  * 900×1 float textures. The vertex shader winds each strand around that centreline
  * and sweeps a small ring along it: ~89k opaque vertices, one draw call, no noise.
+ * Plain WebGL2, no engine: one program, one vertex array, two textures.
  * The path itself lives in rope-path.ts.
  */
 
@@ -22,10 +22,18 @@ const RADIAL = 10;
 /** One extra vertex closes each ring, so nothing interpolates across the seam. */
 const RING = RADIAL + 1;
 const TAU = Math.PI * 2;
+/** Brightness before tone mapping, as the ACES curve expects it. */
+const EXPOSURE = 1.05;
 
 export type CablePose = RopePose;
 
-const VERTEX = /* glsl */ `
+const VERTEX = /* glsl */ `#version 300 es
+precision highp float;
+precision highp int;
+precision highp sampler2D;
+
+uniform mat4 uProjection;
+uniform float uCameraZ;   // the camera looks down -z from here, so view space is a shift in z
 uniform sampler2D uPos;   // xyz centreline, w how settled (0 knotted, 1 taut)
 uniform sampler2D uFrame; // xyz frame normal, w arc length from the left end
 uniform float uLength;
@@ -36,21 +44,21 @@ uniform float uRadiusTaut;
 uniform float uSpacing;
 uniform float uThickness; // follows the knot size, so the rope keeps its proportions on phones
 
-attribute float aSample;
-attribute float aAngle;
-attribute float aIndex;
-attribute float aLane;
-attribute float aAccent;
-attribute float aTone;
+layout(location = 0) in float aSample;
+layout(location = 1) in float aAngle;
+layout(location = 2) in float aIndex;
+layout(location = 3) in float aLane;
+layout(location = 4) in float aAccent;
+layout(location = 5) in float aTone;
 
-varying vec3 vNormal;
-varying vec3 vRadial;
-varying vec3 vLaneNormal;
-varying vec3 vViewPosition;
-varying float vFibre;
-varying float vSettled;
-varying float vAccent;
-varying float vTone;
+out vec3 vNormal;
+out vec3 vRadial;
+out vec3 vLaneNormal;
+out vec3 vViewPosition;
+out float vFibre;
+out float vSettled;
+out float vAccent;
+out float vTone;
 
 const float TAU = 6.28318530718;
 
@@ -86,34 +94,66 @@ void main() {
   vec3 surfaceNormal = ringX * cos(aAngle) + ringY * sin(aAngle);
 
   float radius = mix(uRadiusKnot, uRadiusTaut, settled) * uThickness;
-  vec4 mvPosition = modelViewMatrix * vec4(centre + surfaceNormal * radius, 1.0);
+  vec3 world = centre + surfaceNormal * radius;
+  vec4 mvPosition = vec4(world.xy, world.z - uCameraZ, 1.0);
 
-  mat3 toView = mat3(viewMatrix);
-  vNormal = normalize(toView * surfaceNormal);
-  vRadial = normalize(toView * radial);
-  vLaneNormal = normalize(toView * normal);
+  // The camera does not rotate, so directions are the same in world and view space.
+  vNormal = normalize(surfaceNormal);
+  vRadial = radial;
+  vLaneNormal = normal;
   vViewPosition = mvPosition.xyz;
   // Fine twisted fibres on every strand: a diagonal groove pattern along its length.
   vFibre = arc * 150.0 + aAngle * 3.0;
   vSettled = settled;
   vAccent = aAccent;
   vTone = aTone;
-  gl_Position = projectionMatrix * mvPosition;
+  gl_Position = uProjection * mvPosition;
 }
 `;
 
-const FRAGMENT = /* glsl */ `
+const FRAGMENT = /* glsl */ `#version 300 es
+precision highp float;
+
 uniform vec3 uPaper;
 uniform vec3 uSignal;
 
-varying vec3 vNormal;
-varying vec3 vRadial;
-varying vec3 vLaneNormal;
-varying vec3 vViewPosition;
-varying float vFibre;
-varying float vSettled;
-varying float vAccent;
-varying float vTone;
+in vec3 vNormal;
+in vec3 vRadial;
+in vec3 vLaneNormal;
+in vec3 vViewPosition;
+in float vFibre;
+in float vSettled;
+in float vAccent;
+in float vTone;
+
+out vec4 fragColor;
+
+// ACES filmic, as fitted by Stephen Hill, with the brighter viewing scale three.js uses.
+vec3 rrtAndOdtFit(vec3 v) {
+  vec3 a = v * (v + 0.0245786) - 0.000090537;
+  vec3 b = v * (0.983729 * v + 0.4329510) + 0.238081;
+  return a / b;
+}
+
+vec3 acesFilmic(vec3 color) {
+  const mat3 inputMat = mat3(
+    vec3(0.59719, 0.07600, 0.02840),
+    vec3(0.35458, 0.90834, 0.13383),
+    vec3(0.04823, 0.01566, 0.83777)
+  );
+  const mat3 outputMat = mat3(
+    vec3(1.60475, -0.10208, -0.00327),
+    vec3(-0.53108, 1.10813, -0.07276),
+    vec3(-0.07367, -0.00605, 1.07602)
+  );
+  color *= ${EXPOSURE} / 0.6;
+  color = outputMat * rrtAndOdtFit(inputMat * color);
+  return clamp(color, 0.0, 1.0);
+}
+
+vec3 linearToSrgb(vec3 c) {
+  return mix(pow(c, vec3(0.41666)) * 1.055 - vec3(0.055), c * 12.92, vec3(lessThanEqual(c, vec3(0.0031308))));
+}
 
 void main() {
   vec3 n = normalize(vNormal);
@@ -155,15 +195,62 @@ void main() {
   float haze = smoothstep(-13.0, -5.5, vViewPosition.z);
   color *= mix(0.35, 1.0, haze);
 
-  gl_FragColor = vec4(color, 1.0);
-  #include <tonemapping_fragment>
-  #include <colorspace_fragment>
+  fragColor = vec4(linearToSrgb(acesFilmic(color)), 1.0);
 }
 `;
 
-export function createCable() {
+/** A CSS hex colour in linear light, the space the shader lights in. */
+function linearColor(hex: string) {
+  const value = parseInt(hex.slice(1), 16);
+  return [16, 8, 0].map((shift) => {
+    const c = ((value >> shift) & 255) / 255;
+    return c < 0.04045 ? c * 0.0773993808 : Math.pow(c * 0.9478672986 + 0.0521327014, 2.4);
+  });
+}
+
+function compile(gl: WebGL2RenderingContext, type: number, source: string) {
+  const shader = gl.createShader(type)!;
+  gl.shaderSource(shader, source);
+  gl.compileShader(shader);
+  if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(shader) ?? 'shader');
+  return shader;
+}
+
+function link(gl: WebGL2RenderingContext) {
+  const program = gl.createProgram();
+  gl.attachShader(program, compile(gl, gl.VERTEX_SHADER, VERTEX));
+  gl.attachShader(program, compile(gl, gl.FRAGMENT_SHADER, FRAGMENT));
+  gl.linkProgram(program);
+  if (!gl.getProgramParameter(program, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(program) ?? 'program');
+  return program;
+}
+
+function attribute(gl: WebGL2RenderingContext, location: number, data: Float32Array, perInstance = false) {
+  gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer());
+  gl.bufferData(gl.ARRAY_BUFFER, data, gl.STATIC_DRAW);
+  gl.enableVertexAttribArray(location);
+  gl.vertexAttribPointer(location, 1, gl.FLOAT, false, 0, 0);
+  if (perInstance) gl.vertexAttribDivisor(location, 1);
+}
+
+function dataTexture(gl: WebGL2RenderingContext, data: Float32Array) {
+  const texture = gl.createTexture();
+  gl.bindTexture(gl.TEXTURE_2D, texture);
+  // Read with texelFetch only: no filtering, no mipmaps.
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA32F, SAMPLES, 1, 0, gl.RGBA, gl.FLOAT, data);
+  return texture;
+}
+
+export function createCable(gl: WebGL2RenderingContext) {
+  const program = link(gl);
+  const vao = gl.createVertexArray();
+  gl.bindVertexArray(vao);
+
   // Base tube: SAMPLES rings of RING vertices (the last one repeats the first at 2π).
-  const geometry = new THREE.InstancedBufferGeometry();
   const sampleAttr = new Float32Array(SAMPLES * RING);
   const angleAttr = new Float32Array(SAMPLES * RING);
   for (let s = 0; s < SAMPLES; s++) {
@@ -173,7 +260,8 @@ export function createCable() {
     }
   }
 
-  const index: number[] = [];
+  const index = new Uint16Array((SAMPLES - 1) * RADIAL * 6);
+  let k = 0;
   for (let s = 0; s < SAMPLES - 1; s++) {
     for (let a = 0; a < RADIAL; a++) {
       const a0 = s * RING + a;
@@ -181,64 +269,71 @@ export function createCable() {
       const b0 = a0 + RING;
       const b1 = a1 + RING;
       // Wound so the outward faces are front faces.
-      index.push(a0, a1, b0, a1, b1, b0);
+      index.set([a0, a1, b0, a1, b1, b0], k);
+      k += 6;
     }
   }
-
-  geometry.setIndex(index);
-  geometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(SAMPLES * RING * 3), 3));
-  geometry.setAttribute('aSample', new THREE.BufferAttribute(sampleAttr, 1));
-  geometry.setAttribute('aAngle', new THREE.BufferAttribute(angleAttr, 1));
 
   const strandIndex = new Float32Array(STRANDS);
   const lane = new Float32Array(STRANDS);
   const accent = new Float32Array(STRANDS);
-  const tone = new Float32Array(STRANDS);
   const tones = [1, 0.93, 0.97, 0.9, 1, 0.95, 0.91, 0.98, 0.94];
   for (let i = 0; i < STRANDS; i++) {
     strandIndex[i] = i;
     lane[i] = i - (STRANDS - 1) / 2;
     accent[i] = i === TRACER ? 1 : 0;
-    // Barely-there variation between strands, so the lay reads as fibre, not plastic.
-    tone[i] = tones[i];
   }
-  geometry.setAttribute('aIndex', new THREE.InstancedBufferAttribute(strandIndex, 1));
-  geometry.setAttribute('aLane', new THREE.InstancedBufferAttribute(lane, 1));
-  geometry.setAttribute('aAccent', new THREE.InstancedBufferAttribute(accent, 1));
-  geometry.setAttribute('aTone', new THREE.InstancedBufferAttribute(tone, 1));
-  geometry.instanceCount = STRANDS;
+
+  attribute(gl, 0, sampleAttr);
+  attribute(gl, 1, angleAttr);
+  attribute(gl, 2, strandIndex, true);
+  attribute(gl, 3, lane, true);
+  attribute(gl, 4, accent, true);
+  // Barely-there variation between strands, so the lay reads as fibre, not plastic.
+  attribute(gl, 5, new Float32Array(tones), true);
+  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, gl.createBuffer());
+  gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, index, gl.STATIC_DRAW);
+  gl.bindVertexArray(null);
 
   const positions = new Float32Array(SAMPLES * 4);
   const frames = new Float32Array(SAMPLES * 4);
-  const positionTexture = new THREE.DataTexture(positions, SAMPLES, 1, THREE.RGBAFormat, THREE.FloatType);
-  const frameTexture = new THREE.DataTexture(frames, SAMPLES, 1, THREE.RGBAFormat, THREE.FloatType);
+  const positionTexture = dataTexture(gl, positions);
+  const frameTexture = dataTexture(gl, frames);
 
-  const material = new THREE.ShaderMaterial({
-    vertexShader: VERTEX,
-    fragmentShader: FRAGMENT,
-    uniforms: {
-      uPos: { value: positionTexture },
-      uFrame: { value: frameTexture },
-      uLength: { value: 1 },
-      uLay: { value: 0.55 },
-      // Bundle + strand radius = ROPE_RADIUS, the thickness scripts/check-rope.ts verifies.
-      uBundle: { value: ROPE_RADIUS - 0.02 },
-      uRadiusKnot: { value: 0.02 },
-      uRadiusTaut: { value: 0.016 },
-      uSpacing: { value: 0.085 },
-      uThickness: { value: 1 },
-      uPaper: { value: new THREE.Color('#f1eee8') },
-      uSignal: { value: new THREE.Color('#f5b700') },
-    },
-  });
+  const uniform = (name: string) => gl.getUniformLocation(program, name);
+  const uniforms = {
+    projection: uniform('uProjection'),
+    cameraZ: uniform('uCameraZ'),
+    length: uniform('uLength'),
+    thickness: uniform('uThickness'),
+    paper: uniform('uPaper'),
+  };
 
-  const mesh = new THREE.Mesh(geometry, material);
-  mesh.frustumCulled = false;
+  gl.useProgram(program);
+  gl.uniform1i(uniform('uPos'), 0);
+  gl.uniform1i(uniform('uFrame'), 1);
+  gl.uniform1f(uniform('uLay'), 0.55);
+  // Bundle + strand radius = ROPE_RADIUS, the thickness scripts/check-rope.ts verifies.
+  gl.uniform1f(uniform('uBundle'), ROPE_RADIUS - 0.02);
+  gl.uniform1f(uniform('uRadiusKnot'), 0.02);
+  gl.uniform1f(uniform('uRadiusTaut'), 0.016);
+  gl.uniform1f(uniform('uSpacing'), 0.085);
+  gl.uniform3fv(uniforms.paper, linearColor('#f1eee8'));
+  gl.uniform3fv(uniform('uSignal'), linearColor('#f5b700'));
+
+  // Opaque and closed: depth test, back faces culled, no blending.
+  gl.enable(gl.DEPTH_TEST);
+  gl.depthFunc(gl.LEQUAL);
+  gl.enable(gl.CULL_FACE);
+  gl.cullFace(gl.BACK);
+  gl.clearColor(0, 0, 0, 0);
 
   // Scratch buffers, reused every frame: no allocation in the loop.
   const params = new Float32Array(SAMPLES);
   const tangents = new Float32Array(SAMPLES * 3);
   const normals = new Float32Array(SAMPLES * 3);
+  let ropeLength = 1;
+  let thickness = 1;
 
   function update(pose: CablePose) {
     solveRope(pose, SAMPLES, positions, params);
@@ -263,8 +358,8 @@ export function createCable() {
       }
       frames[i * 4 + 3] = arc;
     }
-    material.uniforms.uLength.value = arc;
-    material.uniforms.uThickness.value = pose.scale;
+    ropeLength = arc;
+    thickness = pose.scale;
 
     // Rotation-minimising frames (double reflection): the rope never flips on its own.
     {
@@ -342,9 +437,30 @@ export function createCable() {
       frames[i * 4 + 2] = nz * c + (tx * ny - ty * nx) * sn;
     }
 
-    positionTexture.needsUpdate = true;
-    frameTexture.needsUpdate = true;
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_2D, positionTexture);
+    gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, SAMPLES, 1, gl.RGBA, gl.FLOAT, positions);
+    gl.activeTexture(gl.TEXTURE1);
+    gl.bindTexture(gl.TEXTURE_2D, frameTexture);
+    gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, SAMPLES, 1, gl.RGBA, gl.FLOAT, frames);
   }
 
-  return { mesh, uniforms: material.uniforms, update };
+  function draw(projection: Float32Array, cameraZ: number) {
+    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+    gl.useProgram(program);
+    gl.uniformMatrix4fv(uniforms.projection, false, projection);
+    gl.uniform1f(uniforms.cameraZ, cameraZ);
+    gl.uniform1f(uniforms.length, ropeLength);
+    gl.uniform1f(uniforms.thickness, thickness);
+    gl.bindVertexArray(vao);
+    gl.drawElementsInstanced(gl.TRIANGLES, index.length, gl.UNSIGNED_SHORT, 0, STRANDS);
+    gl.bindVertexArray(null);
+  }
+
+  function setPaper(hex: string) {
+    gl.useProgram(program);
+    gl.uniform3fv(uniforms.paper, linearColor(hex));
+  }
+
+  return { update, draw, setPaper };
 }

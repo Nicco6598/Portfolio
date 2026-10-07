@@ -1,9 +1,8 @@
 import gsap from 'gsap';
-import { ACESFilmicToneMapping, MathUtils, PerspectiveCamera, Scene, Vector2, WebGLRenderer } from 'three';
 import { createCable, type CablePose } from './cable';
 
 /**
- * The WebGL stage, loaded on demand so the page never waits for three.js to show text.
+ * The WebGL stage, loaded on demand so the page never waits for it to show text.
  * It reads the shared state the page writes (scroll progress, section fade) and draws.
  */
 
@@ -21,46 +20,75 @@ export interface StageState {
 }
 
 const LOOP_SECONDS = 26;
+/** Camera distance from the origin, looking down -z. */
 const FOCUS = 6.5;
+/** Vertical field of view, degrees. */
+const FOV = 35;
+const NEAR = 0.1;
+const FAR = 100;
 /** Drawing-buffer budget: past this many pixels the canvas renders at a lower ratio. */
 const PIXEL_BUDGET = 3.2e6;
 
 export function mountStage(canvas: HTMLCanvasElement, stage: StageState, options: { debug: boolean; reducedMotion: boolean }) {
   // Transparent canvas: the studio backdrop is a CSS gradient behind it.
-  const renderer = new WebGLRenderer({ canvas, antialias: true, alpha: true, powerPreference: 'high-performance' });
-  renderer.setClearColor(0x000000, 0);
-  renderer.toneMapping = ACESFilmicToneMapping;
-  renderer.toneMappingExposure = 1.05;
-
-  const scene = new Scene();
-  const camera = new PerspectiveCamera(35, 1, 0.1, 100);
-  camera.position.set(0, 0, FOCUS);
-  camera.lookAt(0, 0, 0);
-  const cable = createCable();
-  scene.add(cable.mesh);
-  const { uniforms } = cable;
+  const gl = canvas.getContext('webgl2', {
+    antialias: true,
+    alpha: true,
+    premultipliedAlpha: true,
+    depth: true,
+    stencil: false,
+    powerPreference: 'high-performance',
+  });
+  if (!gl) throw new Error('WebGL2 unavailable');
+  let cable = createCable(gl);
+  let paper = '#f1eee8';
 
   const pose: CablePose = { progress: 0, loop: 0, tiltX: 0, tiltY: 0, halfWidth: 3, scale: 1, offsetY: 0 };
 
+  // Column-major perspective projection; only the aspect term changes on resize.
+  const projection = new Float32Array(16);
+  const focal = 1 / Math.tan(((FOV / 2) * Math.PI) / 180);
+  projection[5] = focal;
+  projection[10] = (FAR + NEAR) / (NEAR - FAR);
+  projection[11] = -1;
+  projection[14] = (2 * FAR * NEAR) / (NEAR - FAR);
+
   let dprCap = 2;
+  let pixelRatio = 1;
   const resize = () => {
     const width = innerWidth;
     const height = innerHeight;
     const budgetRatio = Math.sqrt(PIXEL_BUDGET / (width * height));
-    renderer.setPixelRatio(Math.max(1, Math.min(devicePixelRatio, dprCap, budgetRatio)));
-    renderer.setSize(width, height, false);
-    camera.aspect = width / height;
-    camera.updateProjectionMatrix();
-    pose.halfWidth = Math.tan(MathUtils.degToRad(camera.fov / 2)) * FOCUS * camera.aspect;
-    pose.scale = MathUtils.clamp(camera.aspect * 1.2, 0.58, 1);
+    pixelRatio = Math.max(1, Math.min(devicePixelRatio, dprCap, budgetRatio));
+    canvas.width = Math.floor(width * pixelRatio);
+    canvas.height = Math.floor(height * pixelRatio);
+    gl.viewport(0, 0, canvas.width, canvas.height);
+    const aspect = width / height;
+    projection[0] = focal / aspect;
+    pose.halfWidth = (FOCUS / focal) * aspect;
+    pose.scale = Math.min(Math.max(aspect * 1.2, 0.58), 1);
   };
   resize();
   window.addEventListener('resize', resize);
 
+  // The GPU can be taken away (driver reset, too many tabs): stop drawing, rebuild on return.
+  let lost = false;
+  canvas.addEventListener('webglcontextlost', (event) => {
+    event.preventDefault();
+    lost = true;
+  });
+  canvas.addEventListener('webglcontextrestored', () => {
+    cable = createCable(gl);
+    cable.setPaper(paper);
+    resize();
+    lost = false;
+  });
+
   // Pointer: the coil leans towards it, a little.
-  const pointer = new Vector2();
+  const pointer = { x: 0, y: 0 };
   window.addEventListener('pointermove', (event) => {
-    pointer.set((event.clientX / innerWidth) * 2 - 1, -(event.clientY / innerHeight) * 2 + 1);
+    pointer.x = (event.clientX / innerWidth) * 2 - 1;
+    pointer.y = -(event.clientY / innerHeight) * 2 + 1;
   });
 
   const fps = document.querySelector<HTMLOutputElement>('.fps');
@@ -91,7 +119,7 @@ export function mountStage(canvas: HTMLCanvasElement, stage: StageState, options
       visible = drawing;
       canvas.style.visibility = drawing ? '' : 'hidden';
     }
-    if (!drawing) return;
+    if (!drawing || lost) return;
 
     if (!options.reducedMotion) elapsed += dt;
     pose.loop = ((elapsed / LOOP_SECONDS) * Math.PI * 2) % (Math.PI * 2);
@@ -118,7 +146,7 @@ export function mountStage(canvas: HTMLCanvasElement, stage: StageState, options
 
     if (opacity > 0.002 || stage.blueprint) {
       cable.update(pose);
-      renderer.render(scene, camera);
+      cable.draw(projection, FOCUS);
     }
 
     // Adaptive resolution: if frames keep running long, drop the drawing-buffer ratio once.
@@ -139,18 +167,19 @@ export function mountStage(canvas: HTMLCanvasElement, stage: StageState, options
       frames++;
       fpsClock += deltaMs;
       if (fpsClock >= 500) {
-        fps.value = `${Math.round((frames * 1000) / fpsClock)} fps · dpr ${renderer.getPixelRatio().toFixed(2)}`;
+        fps.value = `${Math.round((frames * 1000) / fpsClock)} fps · dpr ${pixelRatio.toFixed(2)}`;
         frames = 0;
         fpsClock = 0;
       }
     }
   });
 
-  if (options.debug) Object.assign(window, { __lab: { renderer, scene, camera, stage, pose, uniforms, cable } });
+  if (options.debug) Object.assign(window, { __lab: { gl, stage, pose, projection } });
 
   return {
     setBlueprint(on: boolean) {
-      uniforms.uPaper.value.set(on ? '#7ab0ff' : '#f1eee8');
+      paper = on ? '#7ab0ff' : '#f1eee8';
+      cable.setPaper(paper);
     },
   };
 }
