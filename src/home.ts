@@ -54,10 +54,6 @@ const { lenis } = createApp({
 const splitChars = (selector: string) =>
   // Mask per line, not per char: tight tracking makes glyphs overhang their own box.
   SplitText.create(selector, { type: 'lines,words,chars', charsClass: 'char', mask: 'lines' }).chars;
-const workChars = splitChars('.headline--work');
-const systemsChars = splitChars('.headline--systems');
-gsap.set([...workChars, ...systemsChars], { yPercent: 115 });
-
 const stage: StageState = {
   progress: 0,
   target: 0,
@@ -69,26 +65,44 @@ const stage: StageState = {
   blueprint: false,
 };
 
-gsap
-  .timeline({
-    defaults: { ease: 'none' },
-    scrollTrigger: {
-      trigger: '.hero',
-      start: 'top top',
-      end: 'bottom bottom',
-      scrub: true,
-      onUpdate: (self) => {
-        stage.target = gsap.utils.clamp(0, 1, (self.progress - 0.06) / 0.78);
+// The masks freeze where the lines break, so split on the display face, not its fallback.
+// Hidden until then, so the raw headline never shows; a slow font only waits a moment.
+const headlines = gsap.utils.toArray<HTMLElement>('.headline');
+gsap.set(headlines, { autoAlpha: 0 });
+const fontsLoaded = Promise.race([document.fonts.ready, new Promise((resolve) => setTimeout(resolve, 1500))]);
+
+let workChars: Element[] = [];
+const heroReady = fontsLoaded.then(() => {
+  workChars = splitChars('.headline--work');
+  const systemsChars = splitChars('.headline--systems');
+  gsap.set([...workChars, ...systemsChars], { yPercent: 115 });
+  gsap.set(headlines, { autoAlpha: 1 });
+
+  gsap
+    .timeline({
+      defaults: { ease: 'none' },
+      scrollTrigger: {
+        trigger: '.hero',
+        start: 'top top',
+        end: 'bottom bottom',
+        scrub: true,
+        onUpdate: (self) => {
+          stage.target = gsap.utils.clamp(0, 1, (self.progress - 0.06) / 0.78);
+        },
       },
-    },
-  })
-  .to(workChars, { y: (_, el: HTMLElement) => -el.offsetHeight * 1.6, stagger: 0.015, duration: 0.3 }, 0)
-  .to(systemsChars, { yPercent: 0, stagger: 0.015, duration: 0.3, ease: 'power2.out' }, 0.62);
+    })
+    // Positions are fractions of the hero's scroll. The first line leaves while the coil is pulled
+    // open, the second arrives as the strands fall into lanes: the frame is never without words.
+    .to({}, { duration: 1 }, 0)
+    .to(workChars, { y: (_, el: HTMLElement) => -el.offsetHeight * 1.6, stagger: 0.012, duration: 0.25 }, 0.18)
+    .to(systemsChars, { yPercent: 0, stagger: 0.012, duration: 0.25, ease: 'power2.out' }, 0.36);
+});
 
 // Each dark section sets how present the cable is, and where it rests.
 const CABLE_SCENES: Record<string, { fade: number; offsetY: number }> = {
   hero: { fade: 1, offsetY: 0 },
-  manifesto: { fade: 0.4, offsetY: -0.3 },
+  // Reading: the lanes rise ahead of the paragraph and dim, so the words never cross them.
+  manifesto: { fade: 0.22, offsetY: 1.25 },
   // The page ends clean: the cable has done its work by the time you reach the address.
   contact: { fade: 0, offsetY: -1.3 },
 };
@@ -139,8 +153,8 @@ const layRope = () => {
 
 function intro() {
   introStarted = true;
-  gsap.to(workChars, { yPercent: 0, duration: 1.3, stagger: 0.024, ease: 'expo.out', delay: 0.1 });
   layRope();
+  void heroReady.then(() => gsap.to(workChars, { yPercent: 0, duration: 1.1, stagger: 0.02, ease: 'expo.out', delay: 0.05 }));
 }
 
 void import('./stage/stage')
@@ -182,7 +196,7 @@ async function boot() {
   loader.addEventListener('click', skip, { once: true });
 
   await Promise.race([
-    flapTiles(loader.querySelector('[data-loader-board]')!, 'MARCO NICCOLINI', { duration: 0.9, stagger: 0.045 }),
+    flapTiles(loader.querySelector('[data-loader-board]')!, 'MARCO NICCOLINI', { duration: 0.7, stagger: 0.03 }),
     new Promise<void>((resolve) => {
       const wait = () => (skipped ? resolve() : requestAnimationFrame(wait));
       wait();
@@ -191,12 +205,12 @@ async function boot() {
 
   gsap.to(loader, {
     yPercent: -100,
-    duration: skipped ? 0.6 : 1.1,
-    delay: skipped ? 0 : 0.25,
+    duration: skipped ? 0.6 : 0.9,
+    delay: skipped ? 0 : 0.1,
     ease: 'expo.inOut',
     onStart: () => {
       lenis.start();
-      gsap.delayedCall(0.3, intro);
+      gsap.delayedCall(0.15, intro);
     },
     onComplete: () => loader.remove(),
   });

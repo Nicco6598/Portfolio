@@ -11,8 +11,6 @@ const cases = existsSync(workDir) ? readdirSync(workDir) : [];
 
 export default defineConfig({
   build: {
-    // The largest chunk is the three.js stage, which the home loads lazily after first paint.
-    chunkSizeWarningLimit: 600,
     rollupOptions: {
       input: {
         home: resolve(root, 'index.html'),

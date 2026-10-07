@@ -62,6 +62,10 @@ export function setupNav(lenis: Lenis) {
     masthead.classList.toggle('masthead--menu', next);
 
     if (next) {
+      // The menu opens in the colours of the block under the masthead: red over Semantics, and so on.
+      const theme = themeUnder();
+      menu.dataset.theme = theme;
+      masthead.dataset.menuTheme = theme;
       menu.hidden = false;
       lenis.stop();
       gsap.killTweensOf([menu, ...splits.flat()]);
@@ -141,21 +145,21 @@ export function setupNav(lenis: Lenis) {
   // Geometry is measured once per layout (load, resize, ScrollTrigger refresh), never
   // while scrolling: each scroll frame is plain arithmetic on cached numbers, with no
   // DOM reads that would force style or layout.
-  interface Area { top: number; bottom: number; left: number; right: number; ink: string }
+  interface Area { top: number; bottom: number; left: number; right: number; ink: string; theme?: string }
   let media: Area[] = [];
   let sections: Area[] = [];
   let probes: { el: HTMLElement; x: number; y: number }[] = [];
   const lastInk = new Map<HTMLElement, string>();
 
-  const area = (el: HTMLElement, ink: string): Area => {
+  const area = (el: HTMLElement, ink: string, theme?: string): Area => {
     const rect = el.getBoundingClientRect();
-    return { top: rect.top + scrollY, bottom: rect.bottom + scrollY, left: rect.left, right: rect.right, ink };
+    return { top: rect.top + scrollY, bottom: rect.bottom + scrollY, left: rect.left, right: rect.right, ink, theme };
   };
 
   const measure = () => {
     media = [...document.querySelectorAll<HTMLElement>('[data-nav-ink]')].map((el) => area(el, el.dataset.navInk!));
     sections = [...document.querySelectorAll<HTMLElement>('[data-section-theme]')].map((el) =>
-      area(el, SECTION_INK[el.dataset.sectionTheme!] ?? ''),
+      area(el, SECTION_INK[el.dataset.sectionTheme!] ?? '', el.dataset.sectionTheme),
     );
     // The masthead is fixed: its ends sit at the same viewport point whatever the scroll.
     const mastheadShift = masthead.getBoundingClientRect().top;
@@ -173,6 +177,14 @@ export function setupNav(lenis: Lenis) {
     let ink = '';
     for (const box of sections) if (y >= box.top && y < box.bottom) ink = box.ink;
     return ink;
+  };
+
+  // The section under the menu button (innermost wins), read from the cached geometry.
+  const themeUnder = () => {
+    const y = (probes.at(-1)?.y ?? 0) + window.scrollY;
+    let theme = 'paper';
+    for (const box of sections) if (y >= box.top && y < box.bottom && box.theme) theme = box.theme;
+    return theme;
   };
 
   const updateInk = (scroll = window.scrollY) => {

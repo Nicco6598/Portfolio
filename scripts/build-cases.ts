@@ -86,6 +86,8 @@ function page(entry: Case, next: Case) {
     <meta name="theme-color" content="${entry.color}" />
     ${CURTAIN_SCRIPT}
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <!-- The display face, fetched with the HTML: the headlines are split and measured on it. -->
+    <link rel="preload" href="/node_modules/@fontsource-variable/host-grotesk/files/host-grotesk-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="stylesheet" href="/src/style.css" />
   </head>
   <body>

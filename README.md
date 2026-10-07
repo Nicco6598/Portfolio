@@ -7,18 +7,18 @@ and opens into clear parallel lanes.
 ## Stack
 
 - Vite, TypeScript, no UI framework: every animation runs through GSAP or WebGL.
-- three.js for the rope, loaded lazily after first paint.
+- Plain WebGL2 for the rope (one program, one draw call, no engine), loaded lazily after first paint.
 - GSAP (ScrollTrigger, SplitText) and Lenis, all on one ticker.
 - Static multi-page output, deployed as Cloudflare Workers static assets (`wrangler.jsonc`).
 
 ## Commands
 
 ```bash
-npm run dev         # generates the case pages, then starts Vite
-npm run build       # case pages, type check, production build into dist/
-npm run preview     # serves dist/ on the local network, for testing on a phone
-npm run check:rope  # proves the rope never passes through itself
-npm run lint
+pnpm dev          # generates the case pages, then starts Vite
+pnpm build        # case pages, type check, production build into dist/
+pnpm preview      # serves dist/ on the local network, for testing on a phone
+pnpm check:rope   # proves the rope never passes through itself
+pnpm lint
 ```
 
 ## Where things live
