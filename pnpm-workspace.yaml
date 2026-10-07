@@ -3,3 +3,7 @@ packages:
 
 allowBuilds:
   esbuild: false
+
+# Vite 8 accepts esbuild ^0.27 or ^0.28 as an optional peer; 0.27 has a dev-server file read on Windows.
+overrides:
+  esbuild: ^0.28.1
