@@ -7,20 +7,9 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { SITE_URL, cases, type Case } from '../src/content.ts';
 import { escapeHtml, picture } from '../src/core/media.ts';
+import { FX, HEAD_SCRIPT, WIPE, hints, key, statusbar } from '../src/markup.ts';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
-const BASE = '/';
-
-const CURTAIN_SCRIPT = `<script>
-      try {
-        const curtain = sessionStorage.getItem('tracciato:curtain');
-        if (curtain) {
-          sessionStorage.removeItem('tracciato:curtain');
-          document.documentElement.dataset.curtain = '';
-          document.documentElement.style.setProperty('--curtain', curtain);
-        }
-      } catch {}
-    </script>`;
 
 function seo(entry: Case) {
   const { project } = entry;
@@ -68,110 +57,119 @@ function seo(entry: Case) {
     <script type="application/ld+json">${JSON.stringify(schema).replaceAll('<', '\\u003c')}</script>`;
 }
 
-function page(entry: Case, next: Case) {
+function page(entry: Case, previous: Case, next: Case) {
   const { project } = entry;
-  const outcomes = project.outcomes ?? [project.impact];
-  const [lead, ...rest] = outcomes;
+  const position = `${String(cases.indexOf(entry) + 1).padStart(2, '0')}/${String(cases.length).padStart(2, '0')}`;
   const links = [
-    project.liveUrl && `<a class="button" href="${project.liveUrl}" target="_blank" rel="noreferrer">Visit ${escapeHtml(project.name)}</a>`,
-    project.githubUrl && `<a class="button button--ghost" href="${project.githubUrl}" target="_blank" rel="noreferrer">Source</a>`,
+    project.liveUrl && `<a class="button" href="${project.liveUrl}" target="_blank" rel="noreferrer">Visit ${escapeHtml(project.name)} ↗</a>`,
+    project.githubUrl && `<a class="button" href="${project.githubUrl}" target="_blank" rel="noreferrer">Source ↗</a>`,
   ].filter(Boolean);
+  const stack = project.tags.filter((tag) => tag !== 'Semantics').join(' · ');
+  // The details are the same photograph closed in on two other points: the cover's focus, mirrored.
+  const [fx, fy] = entry.focus.split(' ').map((part) => parseFloat(part));
+  const clamp = (value: number) => Math.round(Math.max(10, Math.min(90, value)));
+  const details = [`${clamp(100 - fx)}% ${clamp(fy)}%`, `${clamp(fx)}% ${clamp(100 - fy)}%`];
+  const plate = (o: { zoom: number; focus: string; sizes: string; alt: string; eager?: boolean }) => {
+    const [px, py] = o.focus.split(' ');
+    return `<div class="shot shot--plate" data-dither="/media/${entry.media}-1448.jpg" data-w="480" data-h="240" data-focus="${o.focus}" data-zoom="${o.zoom}" style="--zoom:${o.zoom};--fx:${px};--fy:${py}">
+              <canvas width="480" height="240" aria-hidden="true"></canvas>
+              ${picture({ media: entry.media, alt: o.alt, sizes: o.sizes, focus: o.focus, eager: o.eager })}
+            </div>`;
+  };
+  const row = (label: string, value: string) => `<div><dt>${label}</dt><dd>${escapeHtml(value)}</dd></div>`;
+
+  const ceo = project.tags.includes('Semantics')
+    ? `<aside class="ceo" aria-label="Marco Niccolini, CEO of Semantics">
+            <span class="ceo__badge" aria-hidden="true">CEO</span>
+            <div class="ceo__text">
+              <p class="eyebrow">Chief Executive · Semantics</p>
+              <p class="ceo__title">I run the company that built this.</p>
+              <p class="ceo__body">I founded Semantics and lead it as CEO. ${escapeHtml(project.name)} is its first product, shaped with the people on site and built by me end to end.</p>
+            </div>
+            <a class="ceo__link" href="https://semantics-nu.vercel.app/" target="_blank" rel="noreferrer">Visit Semantics ↗</a>
+          </aside>`
+    : '';
 
   return `<!doctype html>
-<html lang="en" style="--case-bg: ${entry.color}; --case-ink: ${entry.ink}">
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     ${seo(entry)}
-    <meta name="theme-color" content="${entry.color}" />
-    ${CURTAIN_SCRIPT}
+    <meta name="theme-color" content="#d3d6ec" />
+    ${HEAD_SCRIPT}
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
-    <!-- The display face, fetched with the HTML: the headlines are split and measured on it. -->
-    <link rel="preload" href="/node_modules/@fontsource-variable/host-grotesk/files/host-grotesk-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="stylesheet" href="/src/style.css" />
   </head>
   <body>
-    <div class="curtain" aria-hidden="true"></div>
+    ${WIPE}
+    <div class="device">${statusbar({ crumb: `Work / ${project.name}`, back: { href: '/#work', label: 'Work' } })}
+      <main class="viewport viewport--case" id="top" tabindex="-1">
+        <article class="case">
+          <header class="masthead">
+            <p class="masthead__file eyebrow"><span>File ${position}</span><span>${entry.status}</span></p>
+            <h1 class="masthead__title" style="--n:${project.name.length}">${escapeHtml(project.name)}</h1>
+          </header>
+          <dl class="specs">${row('Year', project.date)}${row('Role', project.role)}${row('Stack', stack)}${row('Status', entry.status)}</dl>
 
-    <header class="masthead" data-name="Masthead">
-      <a class="masthead__name" href="${BASE}">Marco Niccolini</a>
-      <nav aria-label="Primary">
-        <a href="${BASE}#work" aria-current="page">Work</a>
-        <a href="${BASE}#semantics">Semantics</a>
-        <a href="${BASE}#about">About</a>
-        <a href="${BASE}#contact">Contact</a>
-      </nav>
-    </header>
+          ${ceo}
 
-    <main>
-      <section class="case-hero" data-section-theme="case" data-name="Case hero">
-        <h1 class="display case-hero__title" style="--chars: ${project.name.length}">${escapeHtml(project.name)}</h1>
-        <p class="case-hero__tagline">${escapeHtml(project.tagline)}</p>
-        <dl class="case-meta">
-          <div><dt class="mono">Year</dt><dd>${escapeHtml(project.date)}</dd></div>
-          <div><dt class="mono">Role</dt><dd>${escapeHtml(project.role)}</dd></div>
-          <div><dt class="mono">Built with</dt><dd>${project.tags.filter((tag) => tag !== 'Semantics').map(escapeHtml).join(', ')}</dd></div>
-          <div><dt class="mono">Status</dt><dd>${entry.status}</dd></div>
-        </dl>
-      </section>
+          <figure class="plate plate--cover">
+            ${plate({ zoom: 1, focus: entry.focus, sizes: '100vw', alt: project.imageAlt ?? '', eager: true })}
+            <figcaption class="plate__caption">
+              <span class="plate__fig">Fig. 01</span>
+              <span class="plate__text">${escapeHtml(project.tagline)}</span>
+              <button class="toggle" type="button" data-act="original"><kbd>O</kbd> <span data-original-label>Original</span></button>
+            </figcaption>
+          </figure>
 
-      <figure class="case-cover" data-section-theme="dark" data-name="Cover" data-nav-ink="var(--paper)">
-        ${picture({ media: entry.media, alt: project.imageAlt ?? '', sizes: '100vw', focus: entry.focus, eager: true })}
-      </figure>
+          <section class="brief">
+            <p class="eyebrow">Brief</p>
+            <p class="brief__lead">${escapeHtml(project.impact)}</p>
+          </section>
 
-      <section class="case-statement" data-section-theme="dark" data-name="Statement">
-        <p data-words>${escapeHtml(project.impact)}</p>
-      </section>
+          <section class="chapter">
+            <div class="chapter__head"><span class="chapter__no" aria-hidden="true">01</span><h2>Context</h2></div>
+            <div class="chapter__body"><p class="prose">${escapeHtml(project.description)}</p></div>
+          </section>
 
-      <section class="case-block case-block--first" data-section-theme="paper" data-name="Context">
-        <h2 data-reveal>Context</h2>
-        <div class="case-block__body">
-          <p data-reveal>${escapeHtml(project.description)}</p>
-        </div>
-      </section>
+          <div class="details">
+            <figure class="plate plate--a">
+              ${plate({ zoom: 1.7, focus: details[0], sizes: '60vw', alt: '' })}
+              <figcaption class="plate__caption"><span class="plate__fig">Fig. 02</span><span class="plate__text">Detail · x1.7</span></figcaption>
+            </figure>
+            <figure class="plate plate--b">
+              ${plate({ zoom: 2.3, focus: details[1], sizes: '40vw', alt: '' })}
+              <figcaption class="plate__caption"><span class="plate__fig">Fig. 03</span><span class="plate__text">Detail · x2.3</span></figcaption>
+            </figure>
+          </div>
 
-      <section class="case-block" data-section-theme="paper" data-name="Features">
-        <h2 data-reveal>What it does</h2>
-        <div class="case-block__body">
-          <ol class="features" data-reveal>
-            ${(project.features ?? []).map((feature) => `<li>${escapeHtml(feature)}</li>`).join('\n            ')}
-          </ol>
-        </div>
-      </section>
+          <section class="chapter">
+            <div class="chapter__head"><span class="chapter__no" aria-hidden="true">02</span><h2>What it does</h2></div>
+            <div class="chapter__body"><ol class="features">
+              ${(project.features ?? []).map((feature) => `<li>${escapeHtml(feature)}</li>`).join('')}
+            </ol></div>
+          </section>
 
-      <section class="case-duo" data-section-theme="paper" data-name="Detail">
-        <div class="case-duo__note" data-reveal data-nav-ink="var(--case-ink)">
-          <span class="mono">${escapeHtml(project.name)}</span>
-          <p>${escapeHtml(lead)}</p>
-        </div>
-        <figure data-clip data-clip-scale="1.5" data-nav-ink="var(--paper)">
-          ${picture({ media: entry.media, alt: '', sizes: '(max-width: 760px) 100vw, 50vw', focus: entry.focus })}
-        </figure>
-      </section>
+          <section class="chapter">
+            <div class="chapter__head"><span class="chapter__no" aria-hidden="true">03</span><h2>Outcome</h2></div>
+            <div class="chapter__body">
+              <ul class="outcomes">${(project.outcomes ?? [project.impact]).map((item) => `<li>${escapeHtml(item)}</li>`).join('')}</ul>
+              ${links.length ? `<div class="actions">${links.join('')}</div>` : ''}
+            </div>
+          </section>
 
-      <section class="case-block case-block--first" data-section-theme="case" data-name="Outcome">
-        <h2 data-reveal>Outcome</h2>
-        <div class="case-block__body">
-          ${rest.length ? `<ul class="outcomes">${rest.map((item) => `<li data-reveal>${escapeHtml(item)}</li>`).join('')}</ul>` : ''}
-          ${links.length ? `<div class="case-actions" data-reveal>${links.join('')}</div>` : ''}
-        </div>
-      </section>
-
-      <a class="next" href="${BASE}work/${next.slug}/" data-color="${next.color}" data-ink="${next.ink}"
-        data-cursor="Next case" data-section-theme="dark" data-name="Next" data-nav-ink="${next.ink}"
-        style="--next-bg: ${next.color}; --next-ink: ${next.ink}">
-        <span class="next__label mono">Next departure</span>
-        <div>
-          <p class="next__name" style="--chars: ${next.project.name.length}">${escapeHtml(next.project.name)}</p>
-          <footer class="ledger mono">
-            <span>© <span data-year></span> Marco Niccolini</span>
-            <span>Milano <time data-clock></time></span>
-          </footer>
-        </div>
-      </a>
-    </main>
-
-    <div class="blueprint-grid" aria-hidden="true"></div>
+          <nav class="pager" aria-label="Cases">
+            <a href="/work/${previous.slug}/" data-prev><span class="eyebrow">◀ Previous</span><span class="pager__name" style="--n:${previous.project.name.length}">${escapeHtml(previous.project.name)}</span></a>
+            <a href="/work/${next.slug}/" data-next><span class="eyebrow">Next ▶</span><span class="pager__name" style="--n:${next.project.name.length}">${escapeHtml(next.project.name)}</span></a>
+          </nav>
+          <p class="ledger">© <span data-year></span> Marco Niccolini · Milano</p>
+        </article>
+      </main>${hints(
+        [key('back', '←', 'Back'), key('prev', 'P', 'Prev'), key('next', 'N', 'Next'), key('original', 'O', 'Original'), key('theme', 'T', 'Theme')].join(''),
+      )}
+    </div>
+    ${FX}
     <script type="module" src="/src/case.ts"></script>
   </body>
 </html>
@@ -180,8 +178,9 @@ function page(entry: Case, next: Case) {
 
 cases.forEach((entry, i) => {
   const next = cases[(i + 1) % cases.length];
+  const previous = cases[(i - 1 + cases.length) % cases.length];
   const dir = join(root, 'work', entry.slug);
   mkdirSync(dir, { recursive: true });
-  writeFileSync(join(dir, 'index.html'), page(entry, next));
+  writeFileSync(join(dir, 'index.html'), page(entry, previous, next));
   console.log(`work/${entry.slug}/index.html`);
 });
