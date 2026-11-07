@@ -1,6 +1,25 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" fill="none">
-  <rect width="64" height="64" rx="8" fill="#131515" />
-  <circle cx="51" cy="13" r="5" fill="#7DE2D1" />
-  <path d="M10 46V20h6l6 12 6-12h6v26h-6V31l-6 11-6-11v15h-6Z" fill="#FFFAFB" />
-  <path d="M37 46V20h6l7 14V20h5v26h-6L42 32v14h-5Z" fill="#FFFAFB" />
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" shape-rendering="crispEdges">
+  <rect width="64" height="64" rx="14" fill="#0a19a0"/>
+  <g fill="#d3d6ec">
+  <rect x="11" y="9" width="6" height="6"/>
+  <rect x="47" y="9" width="6" height="6"/>
+  <rect x="11" y="15" width="6" height="6"/>
+  <rect x="17" y="15" width="6" height="6"/>
+  <rect x="41" y="15" width="6" height="6"/>
+  <rect x="47" y="15" width="6" height="6"/>
+  <rect x="11" y="21" width="6" height="6"/>
+  <rect x="23" y="21" width="6" height="6"/>
+  <rect x="35" y="21" width="6" height="6"/>
+  <rect x="47" y="21" width="6" height="6"/>
+  <rect x="11" y="27" width="6" height="6"/>
+  <rect x="29" y="27" width="6" height="6"/>
+  <rect x="47" y="27" width="6" height="6"/>
+  <rect x="11" y="33" width="6" height="6"/>
+  <rect x="47" y="33" width="6" height="6"/>
+  <rect x="11" y="39" width="6" height="6"/>
+  <rect x="47" y="39" width="6" height="6"/>
+  <rect x="11" y="45" width="6" height="6"/>
+  <rect x="47" y="45" width="6" height="6"/>
+  <rect x="41" y="51" width="12" height="6"/>
+  </g>
 </svg>

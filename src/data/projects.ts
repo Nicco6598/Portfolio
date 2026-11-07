@@ -22,7 +22,7 @@ export const projects: Project[] = [
     index: '01',
     name: 'Quantara',
     tagline: 'Operations control for railway projects',
-    role: 'Founder & Product Engineer',
+    role: 'CEO & Product Engineer',
     date: '2026',
     tags: ['SaaS', 'TypeScript', 'PostgreSQL', 'Semantics'],
     description:
