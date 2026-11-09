@@ -166,7 +166,7 @@ function page(entry: Case, previous: Case, next: Case) {
           <p class="ledger">© <span data-year></span> Marco Niccolini · Milano</p>
         </article>
       </main>${hints(
-        [key('back', '←', 'Back'), key('prev', 'P', 'Prev'), key('next', 'N', 'Next'), key('original', 'O', 'Original'), key('theme', 'T', 'Theme')].join(''),
+        [key('back', '←', 'Back'), key('prev', 'P', 'Prev'), key('next', 'N', 'Next'), key('original', 'O', 'Original'), key('skin', 'S', 'Skin'), key('theme', 'T', 'Theme')].join(''),
       )}
     </div>
     ${FX}

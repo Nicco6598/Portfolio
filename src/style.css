@@ -90,7 +90,10 @@
   --dim: color-mix(in srgb, var(--ink) 80%, var(--bg));
   --line: color-mix(in srgb, var(--ink) 30%, var(--bg));
   --wash: color-mix(in srgb, var(--ink) 9%, var(--bg));
-  --pixel: 'Bitcount Prop Single Variable', 'Geist Mono Variable', ui-monospace, monospace;
+}
+
+:root {
+  --pixel: 'Pixelify Sans Variable', 'Geist Mono Variable', ui-monospace, monospace;
   --mono: 'Geist Mono Variable', ui-monospace, 'Cascadia Mono', Menlo, monospace;
   --pad: clamp(14px, 2.2vw, 30px);
   --radius: 10px;
@@ -204,7 +207,7 @@ kbd {
   justify-content: space-between;
   gap: 16px;
   padding: 10px calc(var(--pad) + var(--gutter));
-  border-bottom: 1px solid var(--line);
+  border-bottom: 2px solid var(--ink);
   font-size: 12px;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -232,6 +235,20 @@ kbd {
   white-space: nowrap;
 }
 
+/* Inside the console the back button only exists away from the menu: it also says where you are. */
+.statusbar__back--act {
+  display: none;
+  padding: 6px 0;
+  font: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+}
+
+html[data-screen]:not([data-screen='root']) .statusbar__back--act {
+  display: inline-flex;
+  gap: 6px;
+}
+
 .statusbar__back:hover span {
   text-decoration: underline;
 }
@@ -247,32 +264,48 @@ kbd {
   content: '/ ';
 }
 
+/* Hardware buttons: square, a hard shadow, and they sink when pressed or on. */
 .chip {
-  padding: 2px 11px;
-  border: 1px solid var(--line);
-  border-radius: 999px;
+  padding: 3px 10px;
+  border: 2px solid var(--ink);
+  border-radius: 0;
+  background: var(--bg);
+  box-shadow: 2px 2px 0 var(--ink);
   text-transform: uppercase;
   letter-spacing: 0.06em;
   white-space: nowrap;
-  transition: background-color 0.15s, color 0.15s, border-color 0.15s;
 }
 
-.chip:hover,
+.chip:active,
 .chip[aria-pressed='true'] {
   background: var(--ink);
   color: var(--bg);
-  border-color: var(--ink);
+  box-shadow: none;
+  transform: translate(2px, 2px);
+}
+
+@media (hover: hover) {
+  .chip:hover {
+    background: var(--wash);
+  }
+
+  .chip[aria-pressed='true']:hover {
+    background: var(--ink);
+  }
 }
 
 .chip kbd {
   min-width: 0;
   padding: 0 0.3em;
   border-color: currentColor;
+  border-radius: 0;
 }
 
+/* The legend is the strip under a handheld's screen: round, filled buttons with what they do. */
 .hints {
-  border-top: 1px solid var(--line);
-  padding: 4px calc(var(--pad) + var(--gutter));
+  border-top: 2px solid var(--ink);
+  padding: 6px calc(var(--pad) + var(--gutter));
+  background: var(--wash);
   font-size: 12px;
 }
 
@@ -286,14 +319,30 @@ kbd {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 6px 0;
-  color: var(--dim);
+  padding: 4px 0;
+  color: var(--ink);
   text-transform: uppercase;
   letter-spacing: 0.06em;
 }
 
-.key:hover {
-  color: var(--ink);
+.key kbd {
+  display: inline-grid;
+  place-items: center;
+  min-width: 26px;
+  height: 26px;
+  padding: 0 7px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--ink);
+  color: var(--bg);
+  box-shadow: 0 2px 0 var(--line);
+  font-size: 15px;
+  line-height: 1;
+}
+
+.key:active kbd {
+  transform: translateY(2px);
+  box-shadow: none;
 }
 
 .viewport {
@@ -327,37 +376,45 @@ kbd {
   max-width: 46ch;
 }
 
+/* The menu is one dialog box, like a handheld's: a double frame, a hard shadow, rows that invert when picked. */
 .menu {
   display: flex;
-  flex: 1 0 auto;
+  flex: 0 0 auto;
   flex-direction: column;
-  gap: 8px;
-  padding: var(--pad);
+  margin: var(--pad);
+  padding: 8px;
+  background: var(--bg);
+  border: 2px solid var(--ink);
+  box-shadow:
+    inset 0 0 0 4px var(--bg),
+    inset 0 0 0 5px var(--ink),
+    5px 5px 0 var(--line);
 }
 
 .menu > li {
   display: flex;
-  flex: 1 1 0;
-  min-height: 60px;
-  max-height: 190px;
+  min-height: 0;
+}
+
+.menu > li + li {
+  border-top: 1px dashed var(--line);
 }
 
 .item {
   display: grid;
-  grid-template-columns: 14px 3ch minmax(0, 1fr) auto;
+  grid-template-columns: 16px minmax(0, 1fr) auto;
   align-items: center;
-  gap: 14px;
+  gap: 12px;
   flex: 1;
   width: 100%;
-  padding: 8px 20px;
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
+  min-height: clamp(56px, 8.5vh, 84px);
+  padding: 10px 14px;
   text-align: left;
   text-decoration: none;
   font-family: var(--pixel);
-  font-size: clamp(24px, 2.6vw, 40px);
+  font-size: clamp(24px, 2.4vw, 34px);
   line-height: 1.05;
-  transition: background-color 0.12s, color 0.12s, border-color 0.12s;
+  transition: background-color 0.12s, color 0.12s;
 }
 
 .item__cursor {
@@ -368,25 +425,27 @@ kbd {
   opacity: 0;
 }
 
-.item__num,
+/* The number only matters to the keyboard (1-9 pick a row); it stays out of the way. */
+.item__num {
+  display: none;
+}
+
 .item__meta {
   font-family: var(--mono);
   font-size: 12px;
   color: var(--dim);
-}
-
-.item__meta {
   text-transform: uppercase;
   letter-spacing: 0.06em;
 }
 
-.item:hover {
-  background: var(--wash);
+@media (hover: hover) {
+  .item:hover {
+    background: var(--wash);
+  }
 }
 
 .item.is-active {
   background: var(--ink);
-  border-color: var(--ink);
   color: var(--bg);
 }
 
@@ -394,37 +453,37 @@ kbd {
   opacity: 1;
 }
 
-.item.is-active .item__num,
 .item.is-active .item__meta {
   color: inherit;
 }
 
 .item:focus-visible {
-  outline-offset: 2px;
+  outline-offset: -3px;
 }
 
-/* Anything that belongs to Semantics wears the company's red: a red edge at rest, a red slab selected. */
-.item[data-brand] {
-  border-color: var(--sem);
+/* Anything that belongs to Semantics wears the company's red: a red pixel at rest, a red slab selected. */
+.item[data-brand] .item__label::after {
+  content: '';
+  display: inline-block;
+  width: 0.3em;
+  height: 0.3em;
+  margin-left: 0.4em;
+  background: var(--sem);
 }
 
-.item[data-brand] .item__num {
-  color: var(--sem);
-}
-
-.item[data-brand]:hover {
-  background: color-mix(in srgb, var(--sem) 16%, transparent);
+@media (hover: hover) {
+  .item[data-brand]:hover {
+    background: color-mix(in srgb, var(--sem) 16%, transparent);
+  }
 }
 
 .item[data-brand].is-active {
   background: var(--sem);
-  border-color: var(--sem);
   color: var(--sem-on);
 }
 
-.item[data-brand].is-active .item__num,
-.item[data-brand].is-active .item__meta {
-  color: inherit;
+.item[data-brand].is-active .item__label::after {
+  background: currentColor;
 }
 
 .preview[data-brand] .preview__title {
@@ -1188,19 +1247,40 @@ html:not([data-js]) .toggle {
   position: fixed;
   inset: 0;
   z-index: 100;
-  display: flex;
+  display: none;
   pointer-events: none;
+}
+
+html[data-wipe] .wipe {
+  display: flex;
 }
 
 .wipe i {
   flex: 1;
   background: var(--ink);
-  transform: scaleY(0);
-}
-
-html[data-wipe] .wipe i {
   transform: scaleY(1);
   transform-origin: bottom;
+}
+
+html[data-wipe='open'] .wipe i {
+  animation: wipe-open 170ms steps(5, end) calc(var(--i) * 28ms) both;
+}
+
+html[data-wipe='close'] .wipe i {
+  transform-origin: top;
+  animation: wipe-close 170ms steps(5, end) calc(var(--i) * 28ms) both;
+}
+
+@keyframes wipe-open {
+  to {
+    transform: scaleY(0);
+  }
+}
+
+@keyframes wipe-close {
+  from {
+    transform: scaleY(0);
+  }
 }
 
 .boot {
@@ -1345,12 +1425,27 @@ html[data-fx='on'] .fx {
     padding-block: 8px;
   }
 
-  .statusbar__crumb {
+  /* Away from the menu the title of the view replaces the name: back, and where you are. */
+  html[data-screen='root'] .statusbar__crumb,
+  .case .statusbar__crumb,
+  a.statusbar__back + .statusbar__brand,
+  html:not([data-screen='root']) .statusbar__brand {
     display: none;
   }
 
-  .case .statusbar__crumb,
-  .statusbar__back + .statusbar__brand {
+  html:not([data-screen='root']) .statusbar__crumb {
+    color: var(--ink);
+    font-family: var(--pixel);
+    font-size: 20px;
+    letter-spacing: 0.01em;
+    text-transform: none;
+  }
+
+  html:not([data-screen='root']) .statusbar__crumb::before {
+    content: none;
+  }
+
+  .hints--home {
     display: none;
   }
 
@@ -1374,19 +1469,12 @@ html[data-fx='on'] .fx {
   }
 
   .menu {
-    flex: 0 0 auto;
-    gap: 6px;
-    padding: 12px var(--pad);
-  }
-
-  .menu > li {
-    flex: 0 0 auto;
-    min-height: 58px;
-    max-height: none;
+    margin: 14px var(--pad) 18px;
   }
 
   .item {
-    padding: 8px 16px;
+    min-height: 54px;
+    padding: 8px 12px;
     font-size: 26px;
   }
 
@@ -1476,7 +1564,7 @@ html[data-fx='on'] .fx {
     display: none;
   }
 
-  .preview__side:not(:has(.stops, .swatches, .status)) {
+  .preview__side:not(:has(.stops, .swatches, .status, .chip--mail)) {
     display: none;
   }
 
@@ -1530,6 +1618,13 @@ html[data-fx='on'] .fx {
   }
 }
 
+/* A touch screen has no keys: the key caps in the status bar mean nothing there. */
+@media (pointer: coarse) {
+  .chip kbd {
+    display: none;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .boot {
     display: none;
@@ -1541,5 +1636,451 @@ html[data-fx='on'] .fx {
   .features li,
   .pager a {
     transition: none;
+  }
+}
+
+/* Skins ----------------------------------------------------------------------- */
+/* Same markup, other hardware. Palettes stay theme business; a skin only changes type, corners,
+   frames and how rows are drawn. Handheld is the base above, so it has no block of its own. */
+
+.swatch--skin {
+  gap: 4px;
+  padding: 10px 12px;
+  text-transform: none;
+}
+
+.swatch--skin b {
+  font-family: var(--pixel);
+  font-size: 18px;
+  font-weight: 500;
+  letter-spacing: 0;
+  text-transform: capitalize;
+}
+
+.swatch--skin small {
+  color: var(--dim);
+  font-size: 11px;
+  letter-spacing: 0;
+  line-height: 1.35;
+}
+
+/* Terminal: one monospace voice, square corners, a prompt instead of a frame. */
+html[data-skin='terminal'] {
+  --pixel: 'Geist Mono Variable', ui-monospace, 'Cascadia Mono', Menlo, monospace;
+  --radius: 0;
+}
+
+html[data-skin='terminal'] .menu {
+  margin: var(--pad) 0 var(--pad) var(--pad);
+  padding: 0;
+  border: 0;
+  box-shadow: none;
+}
+
+html[data-skin='terminal'] .menu > li + li {
+  border-top: 0;
+}
+
+html[data-skin='terminal'] .item {
+  min-height: clamp(44px, 6.4vh, 64px);
+  padding: 6px 10px;
+  font-size: clamp(18px, 1.7vw, 24px);
+  font-weight: 500;
+  letter-spacing: -0.01em;
+}
+
+html[data-skin='terminal'] .item__cursor {
+  width: auto;
+  height: auto;
+  background: none;
+  clip-path: none;
+  opacity: 1;
+  color: var(--dim);
+}
+
+html[data-skin='terminal'] .item__cursor::before {
+  content: '$';
+}
+
+html[data-skin='terminal'] .item.is-active .item__cursor::before {
+  content: '>';
+}
+
+html[data-skin='terminal'] .item.is-active {
+  background: var(--wash);
+  color: var(--ink);
+  box-shadow: inset 2px 0 0 var(--ink);
+}
+
+html[data-skin='terminal'] .item.is-active .item__label::after {
+  content: '_';
+  margin-left: 2px;
+  animation: caret 1s steps(1) infinite;
+}
+
+html[data-skin='terminal'] .item[data-brand].is-active {
+  background: color-mix(in srgb, var(--sem) 18%, transparent);
+  color: var(--ink);
+  box-shadow: inset 2px 0 0 var(--sem);
+}
+
+html[data-skin='terminal'] .chip {
+  padding: 3px 4px;
+  border: 0;
+  background: none;
+  box-shadow: none;
+}
+
+html[data-skin='terminal'] .chip::before {
+  content: '[';
+}
+
+html[data-skin='terminal'] .chip::after {
+  content: ']';
+}
+
+html[data-skin='terminal'] .chip:active,
+html[data-skin='terminal'] .chip[aria-pressed='true'] {
+  background: none;
+  color: var(--ink);
+  transform: none;
+}
+
+html[data-skin='terminal'] .chip[aria-pressed='true'] {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+html[data-skin='terminal'] .statusbar,
+html[data-skin='terminal'] .hints {
+  border-width: 1px;
+  border-color: var(--line);
+}
+
+html[data-skin='terminal'] .hints {
+  background: none;
+}
+
+html[data-skin='terminal'] .key kbd {
+  min-width: 0;
+  height: auto;
+  padding: 0 0.3em;
+  border: 1px solid currentColor;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+  color: inherit;
+  font-size: 12px;
+}
+
+html[data-skin='terminal'] .statusbar__brand::before {
+  content: '~/';
+  color: var(--dim);
+}
+
+@keyframes caret {
+  50% {
+    opacity: 0;
+  }
+}
+
+/* Studio: a clean sans, soft corners, rows that are rows, photographs in full colour. */
+html[data-skin='studio'] {
+  --pixel: 'Geist Variable', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --mono: 'Geist Variable', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --radius: 10px;
+  font-size: 15px;
+  letter-spacing: -0.005em;
+}
+
+html[data-skin='studio'] .menu {
+  gap: 2px;
+  margin: var(--pad);
+  padding: 0;
+  border: 0;
+  background: none;
+  box-shadow: none;
+}
+
+html[data-skin='studio'] .menu > li + li {
+  border-top: 0;
+}
+
+html[data-skin='studio'] .item {
+  min-height: clamp(52px, 7.4vh, 72px);
+  padding: 8px 16px;
+  border-radius: var(--radius);
+  font-size: clamp(20px, 1.9vw, 26px);
+  font-weight: 500;
+  letter-spacing: -0.02em;
+}
+
+html[data-skin='studio'] .item__cursor {
+  display: none;
+}
+
+html[data-skin='studio'] .item {
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
+html[data-skin='studio'] .item__meta {
+  text-transform: none;
+  letter-spacing: 0;
+  font-size: 13px;
+}
+
+html[data-skin='studio'] .statusbar {
+  border-bottom-width: 1px;
+  border-color: var(--line);
+  text-transform: none;
+  letter-spacing: 0;
+  font-size: 13px;
+}
+
+html[data-skin='studio'] .statusbar__brand {
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+html[data-skin='studio'] .chip {
+  padding: 4px 12px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  box-shadow: none;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+html[data-skin='studio'] .chip:active,
+html[data-skin='studio'] .chip[aria-pressed='true'] {
+  border-color: var(--ink);
+  transform: none;
+}
+
+html[data-skin='studio'] .hints {
+  border-top-width: 1px;
+  border-color: var(--line);
+  background: none;
+  font-size: 12px;
+}
+
+html[data-skin='studio'] .key {
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+html[data-skin='studio'] .key kbd {
+  min-width: 22px;
+  height: 22px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--wash);
+  box-shadow: none;
+  color: var(--ink);
+  font-size: 12px;
+}
+
+html[data-skin='studio'] .key:active kbd {
+  transform: none;
+}
+
+html[data-skin='studio'] .eyebrow {
+  letter-spacing: 0.04em;
+}
+
+html[data-skin='studio'] .shot canvas {
+  image-rendering: auto;
+}
+
+html[data-skin='studio'] .swatch--skin b {
+  font-weight: 600;
+}
+
+/* The giant names were sized for the pixel face; the other faces are a little wider per letter. */
+html[data-skin='terminal'] .masthead__title,
+html[data-skin='studio'] .masthead__title {
+  font-size: clamp(44px, calc(152cqi / var(--n)), 320px);
+  letter-spacing: -0.03em;
+}
+
+html[data-skin='terminal'] .pager__name,
+html[data-skin='studio'] .pager__name {
+  font-size: clamp(28px, calc(44vw / var(--n)), 150px);
+}
+
+@media (max-width: 760px) {
+  html[data-skin='terminal'] .pager__name,
+  html[data-skin='studio'] .pager__name {
+    font-size: clamp(28px, calc(84vw / var(--n)), 84px);
+  }
+}
+
+/* A narrow screen never grows the console: the bar gives way (crumb truncates, key caps hide). */
+.device {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+@media (max-width: 760px) {
+  .chip kbd {
+    display: none;
+  }
+}
+
+/* The email reveal: two buttons under the title. */
+.preview__side:has(.chip--mail) {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-content: flex-start;
+}
+
+.chip--mail {
+  padding: 8px 14px;
+  text-decoration: none;
+}
+
+.preview__title {
+  overflow-wrap: anywhere;
+}
+
+/* Where a preview is only words (no photograph), the words get the room. */
+@media (min-width: 761px) {
+  [data-screen='contact'] .preview--note,
+  [data-screen='about'] .preview--note,
+  [data-screen='settings'] .preview--note {
+    max-width: 52rem;
+  }
+
+  [data-screen='contact'] .preview--note .preview__title,
+  [data-screen='about'] .preview--note .preview__title,
+  [data-screen='settings'] .preview--note .preview__title {
+    font-size: clamp(36px, 4.4vw, 68px);
+  }
+
+  [data-screen='contact'] .preview--note .preview__tagline,
+  [data-screen='about'] .preview--note .preview__tagline,
+  [data-screen='settings'] .preview--note .preview__tagline {
+    margin-top: 14px;
+    max-width: 40ch;
+    font-size: clamp(15px, 1.35vw, 20px);
+    line-height: 1.5;
+  }
+
+  [data-screen='contact'] .preview--note .preview__body,
+  [data-screen='about'] .preview--note .preview__body {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 22px;
+  }
+}
+
+/* An address has to be read exactly: the mono face, a size that fits the panel. */
+.preview .preview__title--mail {
+  font-family: var(--mono);
+  font-size: clamp(22px, 2.6vw, 40px);
+  font-weight: 500;
+  letter-spacing: -0.02em;
+}
+
+/* Contact: what to expect, always on screen. */
+.avail {
+  display: grid;
+  max-width: 52rem;
+  margin-top: auto;
+  border-top: 2px solid var(--ink);
+}
+
+.avail div {
+  display: grid;
+  grid-template-columns: 11ch minmax(0, 1fr);
+  gap: 16px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.avail dt {
+  color: var(--dim);
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.avail dd {
+  font-size: clamp(14px, 1.2vw, 17px);
+  line-height: 1.5;
+}
+
+/* Settings: the effect shown, not described. */
+.fxdemo {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  max-width: 40rem;
+}
+
+.fxdemo div {
+  display: grid;
+  gap: 6px;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--bg);
+}
+
+.fxdemo b {
+  font-family: var(--pixel);
+  font-size: 22px;
+  font-weight: 500;
+}
+
+.fxdemo span {
+  color: var(--dim);
+  font-size: 12px;
+}
+
+.fxdemo__on {
+  background-image: repeating-linear-gradient(to bottom, transparent 0 2px, rgb(0 0 0 / 0.14) 2px 3px) !important;
+}
+
+@media (min-width: 761px) {
+  [data-screen='settings'] .preview--note .preview__body {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 22px;
+  }
+
+  /* Short menus fill the column instead of stopping halfway down. */
+  [data-screen='about'] .item,
+  [data-screen='contact'] .item,
+  [data-screen='settings'] .item {
+    min-height: clamp(64px, 13vh, 120px);
+  }
+}
+
+@media (max-width: 760px) {
+  .preview__side:has(.fxdemo) {
+    display: block !important;
+  }
+  .avail div {
+    grid-template-columns: 1fr;
+    gap: 2px;
+  }
+  .avail {
+    margin-top: 12px;
+  }
+}
+
+@media (min-width: 761px) {
+  [data-screen='about'] .preview__side .kv {
+    max-width: 44rem;
+    font-size: clamp(14px, 1.2vw, 18px);
+  }
+
+  [data-screen='about'] .preview__side .kv div {
+    grid-template-columns: 9ch minmax(0, 1fr);
+    padding: 12px 0;
+  }
+
+  [data-screen='about'] .preview__side .stops {
+    margin-top: 18px;
   }
 }

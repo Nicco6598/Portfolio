@@ -9,7 +9,7 @@ Complex work, clear systems.
 
 - Vite, TypeScript, no UI framework, no animation library: WAAPI, CSS and a canvas.
 - Static multi-page output, deployed as Cloudflare Workers static assets (`wrangler.jsonc`).
-- Two typefaces, both self-hosted through Fontsource: Bitcount Prop Single (display, a variable pixel font drawn with round dots) and Geist Mono (text).
+- Two typefaces, both self-hosted through Fontsource: Pixelify Sans (display, a crisp variable pixel font) and Geist Mono (text).
 
 ## Commands
 

@@ -9,20 +9,18 @@ const viewport = document.querySelector<HTMLElement>('.viewport')!;
 const plates = [...document.querySelectorAll<HTMLElement>('.shot--plate')];
 const label = document.querySelector<HTMLElement>('[data-original-label]');
 
-// Every plate arrives dithered and compiles in when it comes into view; the originals are one key away.
+// Every plate arrives dithered and compiles in each time it comes into view, scrolling down or back up
+// alike; the originals are one key away.
 const seen = new IntersectionObserver((entries) => {
   for (const entry of entries) {
-    if (!entry.isIntersecting) continue;
-    seen.unobserve(entry.target);
-    scanIn(entry.target as HTMLElement);
+    if (entry.isIntersecting) scanIn(entry.target as HTMLElement);
   }
 });
 
 for (const plate of plates) {
   ditherSlot(plate).then(() => {
     plate.dataset.dithered = '';
-    if (plate.getBoundingClientRect().top < window.innerHeight) scanIn(plate);
-    else seen.observe(plate);
+    seen.observe(plate);
   });
 }
 

@@ -8,7 +8,7 @@ import { shades } from './theme';
  * (two, three or four shades) repaints from memory instead of decoding anything again.
  *
  * Because every frame is a threshold pass, the picture can be alive: it compiles in dot by dot when it
- * appears (the threshold ramps up) and a pool of light follows the pointer (the threshold drops near it).
+ * appears (the threshold ramps up), and a bright band sweeps across it once when the pointer arrives.
  */
 const BAYER = (() => {
   const size = 8;
@@ -33,14 +33,17 @@ interface Frame {
   /** Added to the luminance (in shades) before thresholding: -1 is a black screen, 0 is the photograph. */
   bias: number;
   reveal?: { start: number; duration: number };
-  /** A pool of light in canvas pixels. `k` eases towards `target` (1 while the pointer is over the picture). */
-  lens: { x: number; y: number; k: number; target: number };
+  /** The reveal step last painted, so a frame that would look identical is skipped. */
+  step?: number;
+  /** A band of light travelling down the picture: `start` in ms, once. */
+  sweep?: { start: number; duration: number };
   raf: number;
 }
 
 const REVEAL_MS = 720;
 const REVEAL_STEPS = 18;
-const LENS_GAIN = 0.62;
+const SWEEP_MS = 420;
+const SWEEP_GAIN = 0.55;
 
 const sources = new Map<string, Promise<HTMLImageElement>>();
 const lumaCache = new Map<string, Uint8Array>();
@@ -84,7 +87,7 @@ function luminance(image: HTMLImageElement, width: number, height: number, focus
   return luma;
 }
 
-function paint(canvas: HTMLCanvasElement, { luma, bias, lens }: Frame) {
+function paint(canvas: HTMLCanvasElement, { luma, bias, sweep }: Frame, now = 0) {
   const palette = shades();
   const steps = palette.length - 1;
   const { width, height } = canvas;
@@ -94,33 +97,27 @@ function paint(canvas: HTMLCanvasElement, { luma, bias, lens }: Frame) {
     frame = context.createImageData(width, height);
     buffers.set(canvas, frame);
   }
+  // One 32-bit write per pixel (little-endian ABGR) instead of four byte writes.
+  const pixels = new Uint32Array(frame.data.buffer);
+  const packed = palette.map(([r, g, b]) => (255 << 24) | (b << 16) | (g << 8) | r);
 
-  const radius = Math.min(width, height) * 0.42;
-  const radiusSquared = radius * radius;
-  const lit = lens.k > 0.01;
   const offset = bias * steps;
+  // The band: a few rows tall, eased in and out at its edges, from the top of the picture to the bottom.
+  const band = Math.max(6, height * 0.16);
+  const centre = sweep ? ((now - sweep.start) / sweep.duration) * (height + band * 2) - band : -1e9;
 
   for (let y = 0; y < height; y++) {
-    const dy = y - lens.y;
+    const near = Math.abs(y - centre) / band;
+    const lift = near < 1 ? SWEEP_GAIN * steps * (1 - near) * (1 - near) : 0;
+    const row = y * width;
+    const bayer = (y & 7) * 8;
     for (let x = 0; x < width; x++) {
-      const i = y * width + x;
-      let stretched = (luma[i] / 255) * steps + offset;
-      if (lit) {
-        const dx = x - lens.x;
-        const d2 = dx * dx + dy * dy;
-        if (d2 < radiusSquared) {
-          const falloff = 1 - d2 / radiusSquared;
-          stretched += LENS_GAIN * lens.k * falloff * falloff * steps;
-        }
-      }
+      const i = row + x;
+      let stretched = (luma[i] / 255) * steps + offset + lift;
       stretched = stretched < 0 ? 0 : stretched > steps ? steps : stretched;
       const base = Math.floor(stretched);
-      const threshold = (BAYER[(y & 7) * 8 + (x & 7)] + 0.5) / 64;
-      const [r, g, b] = palette[Math.min(steps, base + (stretched - base > threshold ? 1 : 0))];
-      frame.data[i * 4] = r;
-      frame.data[i * 4 + 1] = g;
-      frame.data[i * 4 + 2] = b;
-      frame.data[i * 4 + 3] = 255;
+      const threshold = (BAYER[bayer + (x & 7)] + 0.5) / 64;
+      pixels[i] = packed[Math.min(steps, base + (stretched - base > threshold ? 1 : 0))];
     }
   }
   context.putImageData(frame, 0, 0);
@@ -132,25 +129,28 @@ function run(canvas: HTMLCanvasElement, state: Frame) {
   state.raf = requestAnimationFrame((now) => {
     state.raf = 0;
     let busy = false;
+    let dirty = false;
 
     if (state.reveal) {
       const t = Math.min(1, Math.max(0, (now - state.reveal.start) / state.reveal.duration));
       const eased = 1 - (1 - t) ** 3;
       // Quantised, so the picture arrives in steps like a handheld redrawing, not as a smooth fade.
-      state.bias = -(1 - Math.round(eased * REVEAL_STEPS) / REVEAL_STEPS);
+      const step = Math.round(eased * REVEAL_STEPS);
+      state.bias = -(1 - step / REVEAL_STEPS);
+      // Most frames land on the step already painted: those cost nothing.
+      if (step !== state.step) dirty = true;
+      state.step = step;
       if (t < 1) busy = true;
       else state.reveal = undefined;
     }
 
-    const { lens } = state;
-    if (Math.abs(lens.target - lens.k) > 0.01) {
-      lens.k += (lens.target - lens.k) * 0.22;
-      busy = true;
-    } else {
-      lens.k = lens.target;
+    if (state.sweep) {
+      if (now - state.sweep.start >= state.sweep.duration) state.sweep = undefined;
+      else busy = true;
+      dirty = true;
     }
 
-    paint(canvas, state);
+    if (dirty) paint(canvas, state, now);
     if (busy) run(canvas, state);
   });
 }
@@ -182,13 +182,57 @@ export async function dither(canvas: HTMLCanvasElement, { src, width, height, fo
   if (previous) cancelAnimationFrame(previous.raf);
   canvas.width = width;
   canvas.height = height;
-  const state: Frame = { luma, bias: 0, lens: { x: 0, y: 0, k: 0, target: 0 }, raf: 0 };
+  const state: Frame = { luma, bias: 0, raf: 0 };
   frames.set(canvas, state);
+  // A redraw at a new size (a font arriving, a resize) must not cut a reveal short: it carries on.
+  if (previous?.reveal) {
+    state.reveal = previous.reveal;
+    state.bias = previous.bias;
+    paint(canvas, state);
+    run(canvas, state);
+    return;
+  }
   paint(canvas, state);
 }
 
 /** Dither pixels are a few CSS pixels wide: coarse enough to read as a texture, fine enough to read as a photograph. */
 const pixelSize = () => (window.devicePixelRatio >= 1.5 ? 2 : 3);
+
+/** The Studio skin shows the photograph as it is: drawn once at device resolution, nothing running afterwards. */
+const photoMode = () => document.documentElement.dataset.skin === 'studio';
+
+/** The canvas size a slot wants right now: its box in dither pixels, or in device pixels for a plain photo. */
+function wanted(slot: HTMLElement): { width: number; height: number } | undefined {
+  const box = slot.getBoundingClientRect();
+  if (box.width === 0 || box.height === 0) return undefined;
+  if (photoMode()) {
+    const scale = Math.min(window.devicePixelRatio || 1, 2);
+    return { width: Math.round(box.width * scale), height: Math.round(box.height * scale) };
+  }
+  const px = pixelSize();
+  return { width: Math.max(16, Math.round(box.width / px)), height: Math.max(16, Math.round(box.height / px)) };
+}
+
+async function photo(canvas: HTMLCanvasElement, slot: HTMLElement, size: { width: number; height: number }) {
+  const ticket = (latest.get(canvas) ?? 0) + 1;
+  latest.set(canvas, ticket);
+  const image = await load(slot.dataset.dither!);
+  if (latest.get(canvas) !== ticket) return;
+
+  const old = frames.get(canvas);
+  if (old) cancelAnimationFrame(old.raf);
+  frames.delete(canvas);
+  canvas.width = size.width;
+  canvas.height = size.height;
+  const context = canvas.getContext('2d')!;
+  context.imageSmoothingQuality = 'high';
+  const [fx, fy] = (slot.dataset.focus ?? '50% 50%').split(' ').map((part) => parseFloat(part) / 100);
+  const zoom = slot.dataset.zoom ? Number(slot.dataset.zoom) : 1;
+  const scale = Math.max(size.width / image.naturalWidth, size.height / image.naturalHeight) * zoom;
+  const sw = size.width / scale;
+  const sh = size.height / scale;
+  context.drawImage(image, (image.naturalWidth - sw) * fx, (image.naturalHeight - sh) * fy, sw, sh, 0, 0, size.width, size.height);
+}
 
 /** The element an image slot is declared on: `data-dither` is the source, the rest is optional. */
 export function ditherSlot(slot: HTMLElement) {
@@ -197,13 +241,12 @@ export function ditherSlot(slot: HTMLElement) {
   watch(slot);
 
   // A visible slot is drawn at the size of its box. A hidden one falls back to its declared size.
-  const box = slot.getBoundingClientRect();
-  const px = pixelSize();
-  const measured = box.width > 0 && box.height > 0;
+  const size = wanted(slot);
+  if (size && photoMode()) return photo(canvas, slot, size);
   return dither(canvas, {
     src: slot.dataset.dither,
-    width: measured ? Math.max(16, Math.round(box.width / px)) : Number(slot.dataset.w ?? 200),
-    height: measured ? Math.max(16, Math.round(box.height / px)) : Number(slot.dataset.h ?? 150),
+    width: size?.width ?? Number(slot.dataset.w ?? 200),
+    height: size?.height ?? Number(slot.dataset.h ?? 150),
     focus: slot.dataset.focus,
     zoom: slot.dataset.zoom ? Number(slot.dataset.zoom) : 1,
   });
@@ -226,30 +269,23 @@ function watch(slot: HTMLElement) {
     settle.set(
       slot,
       window.setTimeout(() => {
-        const box = slot.getBoundingClientRect();
         const canvas = slot.querySelector('canvas');
-        if (!canvas || box.width === 0 || box.height === 0) return;
-        const px = pixelSize();
-        const stale =
-          canvas.width !== Math.max(16, Math.round(box.width / px)) || canvas.height !== Math.max(16, Math.round(box.height / px));
-        if (stale) void ditherSlot(slot);
+        const size = wanted(slot);
+        if (!canvas || !size) return;
+        if (canvas.width !== size.width || canvas.height !== size.height) void ditherSlot(slot);
       }, 120),
     );
   }).observe(slot);
 
-  const aim = (event: PointerEvent, target: number) => {
+  // One pass of light when the mouse arrives; nothing runs while it stays or moves.
+  slot.addEventListener('pointerenter', (event) => {
     if (event.pointerType !== 'mouse' || reducedMotion) return;
     const canvas = slot.querySelector('canvas');
     const state = canvas && frames.get(canvas);
-    if (!canvas || !state) return;
-    const box = canvas.getBoundingClientRect();
-    state.lens.x = ((event.clientX - box.left) / box.width) * canvas.width;
-    state.lens.y = ((event.clientY - box.top) / box.height) * canvas.height;
-    state.lens.target = target;
+    if (!canvas || !state || state.sweep || state.reveal) return;
+    state.sweep = { start: performance.now(), duration: SWEEP_MS };
     run(canvas, state);
-  };
-  slot.addEventListener('pointermove', (event) => aim(event, 1));
-  slot.addEventListener('pointerleave', (event) => aim(event, 0));
+  });
 }
 
 /** Decodes a slot's photograph ahead of time, without drawing anything. */
@@ -269,12 +305,25 @@ export function repaintAll() {
 export function scanIn(element: HTMLElement) {
   if (reducedMotion) return;
   const canvas = element.querySelector('canvas');
-  const state = canvas && frames.get(canvas);
-  if (!canvas || !state) return;
+  if (!canvas) return;
+  if (photoMode()) {
+    canvas.animate({ opacity: [0, 1] }, { duration: 360, easing: 'ease-out' });
+    return;
+  }
+  const state = frames.get(canvas);
+  if (!state) return;
   state.reveal = { start: performance.now(), duration: REVEAL_MS };
   state.bias = -1;
+  state.step = 0;
   paint(canvas, state);
   run(canvas, state);
 }
 
 window.addEventListener('themechange', repaintAll);
+
+// A new skin may draw photographs another way: redraw what is on screen, the rest redraws when it is shown.
+window.addEventListener('skinchange', () => {
+  document.querySelectorAll<HTMLElement>('[data-dither]').forEach((slot) => {
+    if (slot.getBoundingClientRect().width > 0) void ditherSlot(slot);
+  });
+});

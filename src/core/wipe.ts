@@ -1,34 +1,32 @@
 import { reducedMotion } from './store';
 
 const KEY = 'nicco:wipe';
+const BARS = 8;
 const STEP = 28;
 const DURATION = 170;
+/** Last bar's delay plus its own run, the moment a wipe is over. */
+const TOTAL = (BARS - 1) * STEP + DURATION;
+
+const root = document.documentElement;
+let release = 0;
+
+/** The blind is only in the layout while `data-wipe` is set: whatever happens, it cannot stay stuck on screen. */
+function clear() {
+  window.clearTimeout(release);
+  root.removeAttribute('data-wipe');
+}
 
 /**
  * Page changes close like a venetian blind, in steps. The bars are in the HTML, so an
  * arriving page can start covered (the inline script in <head> sets `data-wipe`) and open.
+ * The motion is CSS (`data-wipe="open|close"`); this only starts it and cleans up after it.
  */
 export function setupWipe() {
-  const root = document.documentElement;
-  const bars = [...document.querySelectorAll<HTMLElement>('.wipe i')];
-  if (!bars.length) return;
-
-  const open = () =>
-    bars.forEach((bar, i) => {
-      bar.style.transformOrigin = 'bottom';
-      // `both`: while a bar waits for its turn it keeps covering, even once the attribute is gone.
-      bar.animate([{ transform: 'scaleY(1)' }, { transform: 'scaleY(0)' }], {
-        duration: DURATION,
-        delay: i * STEP,
-        easing: 'steps(5, end)',
-        fill: 'both',
-      });
-    });
+  if (!document.querySelector('.wipe')) return;
 
   if (root.hasAttribute('data-wipe')) {
-    open();
-    // The bars now hold their own final state; the attribute that covered them can go.
-    window.setTimeout(() => root.removeAttribute('data-wipe'), 0);
+    root.dataset.wipe = 'open';
+    release = window.setTimeout(clear, TOTAL + 250);
   }
 
   document.addEventListener('click', (event) => {
@@ -45,34 +43,27 @@ export function setupWipe() {
     navigate(link.href);
   });
 
-  // Back from the history cache: the page must not stay covered.
+  // Back from the history cache (or a cancelled load): the page must not stay covered.
   window.addEventListener('pageshow', (event) => {
-    if (event.persisted) bars.forEach((bar) => bar.getAnimations().forEach((animation) => animation.cancel()));
+    if (event.persisted) clear();
   });
 }
 
 /** Closes the blind, then loads `href`. */
 export function navigate(href: string) {
-  const bars = [...document.querySelectorAll<HTMLElement>('.wipe i')];
   try {
     sessionStorage.setItem(KEY, '1');
   } catch {
     // Without storage the next page simply appears without the opening.
   }
 
-  if (reducedMotion || !bars.length) {
+  if (reducedMotion || !document.querySelector('.wipe')) {
     location.href = href;
     return;
   }
 
-  bars.forEach((bar, i) => {
-    bar.style.transformOrigin = 'top';
-    const animation = bar.animate([{ transform: 'scaleY(0)' }, { transform: 'scaleY(1)' }], {
-      duration: DURATION,
-      delay: i * STEP,
-      easing: 'steps(5, end)',
-      fill: 'forwards',
-    });
-    if (i === bars.length - 1) animation.finished.then(() => (location.href = href));
-  });
+  root.dataset.wipe = 'close';
+  window.setTimeout(() => (location.href = href), TOTAL);
+  // If the load is cancelled the page comes back instead of staying closed.
+  release = window.setTimeout(clear, TOTAL + 4000);
 }

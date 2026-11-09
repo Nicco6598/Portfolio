@@ -13,6 +13,7 @@ export const HEAD_SCRIPT = `<script>
         r.dataset.js = '';
         var theme = localStorage.getItem('nicco:theme:v2');
         if (theme) r.dataset.theme = theme;
+        r.dataset.skin = localStorage.getItem('nicco:skin') || 'handheld';
         r.dataset.fx = localStorage.getItem('nicco:fx:v2') === 'on' ? 'on' : 'off';
         if (sessionStorage.getItem('nicco:wipe')) {
           sessionStorage.removeItem('nicco:wipe');
@@ -23,31 +24,34 @@ export const HEAD_SCRIPT = `<script>
       } catch (e) {}
     </script>`;
 
-export const WIPE = `<div class="wipe" aria-hidden="true">${'<i></i>'.repeat(8)}</div>`;
+export const WIPE = `<div class="wipe" aria-hidden="true">${Array.from({ length: 8 }, (_, i) => `<i style="--i:${i}"></i>`).join('')}</div>`;
 
 export const FX = '<div class="fx" aria-hidden="true"></div>';
 
 interface StatusbarOptions {
   crumb: string;
   back?: { href: string; label: string };
+  /** The home console: a back button that appears away from the menu. */
+  console?: boolean;
 }
 
-export const statusbar = ({ crumb, back }: StatusbarOptions) => `
+export const statusbar = ({ crumb, back, console: inApp }: StatusbarOptions) => `
       <header class="statusbar">
         <div class="statusbar__left">
           ${back ? `<a class="statusbar__back" href="${back.href}" aria-label="Back to ${esc(back.label)}">◀ <span>${esc(back.label)}</span></a>` : ''}
+          ${inApp ? '<button class="statusbar__back statusbar__back--act" type="button" data-act="back" aria-label="Back to the menu">◀ <span>Back</span></button>' : ''}
           <a class="statusbar__brand" href="/">Marco Niccolini</a>
           <span class="statusbar__crumb" data-crumb>${esc(crumb)}</span>
         </div>
         <div class="statusbar__right">
           <span class="statusbar__time">Milano <time data-clock></time></span>
           <button class="chip" type="button" data-act="theme" aria-label="Change theme"><kbd>T</kbd> <span data-label="theme"></span></button>
-          <button class="chip" type="button" data-act="sound" aria-label="Sound"><kbd>M</kbd> Snd <span data-label="sound"></span></button>
+          <button class="chip" type="button" data-act="sound" aria-label="Sound"><kbd>M</kbd> Sound <span data-label="sound"></span></button>
         </div>
       </header>`;
 
-export const hints = (items: string) => `
-      <footer class="hints">
+export const hints = (items: string, className = '') => `
+      <footer class="hints${className ? ` ${className}` : ''}">
         <ul>${items}</ul>
       </footer>`;
 
@@ -56,7 +60,8 @@ export const key = (act: string, keys: string, label: string) =>
   `<li><button class="key" type="button" data-act="${act}"><kbd>${keys}</kbd> ${label}</button></li>`;
 
 export const HOME_HINTS = hints(
-  [key('back', '←', 'Back'), key('move', '↑↓', 'Move'), key('open', '⏎', 'Open'), key('theme', 'T', 'Theme')].join(''),
+  [key('back', '←', 'Back'), key('move', '↑↓', 'Move'), key('open', '⏎', 'Open'), key('skin', 'S', 'Skin'), key('theme', 'T', 'Theme')].join(''),
+  'hints--home',
 );
 
 /** Fills the markers in index.html. */
@@ -65,7 +70,7 @@ export function fillHome(html: string) {
     .replace('<!--@head-->', HEAD_SCRIPT)
     .replace('<!--@wipe-->', WIPE)
     .replace('<!--@fx-->', FX)
-    .replace('<!--@statusbar-->', statusbar({ crumb: 'Menu' }))
+    .replace('<!--@statusbar-->', statusbar({ crumb: 'Menu', console: true }))
     .replace('<!--@screens-->', homeScreens())
     .replace('<!--@hints-->', HOME_HINTS);
 }
@@ -164,7 +169,7 @@ export function homeScreens() {
     `
           <nav class="list" aria-label="Menu">
             <ul class="menu">
-              ${item({ num: '01', label: 'Work', meta: pad(cases.length - 1), preview: 'root:work', href: '#work', drill: true })}
+              ${item({ num: '01', label: 'Work', meta: `${cases.length} cases`, preview: 'root:work', href: '#work', drill: true })}
               ${item({ num: '02', label: 'Semantics', preview: 'root:semantics', href: '#semantics', drill: true, brand: true })}
               ${item({ num: '03', label: 'About', preview: 'root:about', href: '#about', drill: true })}
               ${item({ num: '04', label: 'Contact', preview: 'root:contact', href: '#contact', drill: true })}
@@ -188,7 +193,7 @@ export function homeScreens() {
               ${note('root:semantics', 'Semantics', 'The company I founded to build software for work that cannot stop.', '', undefined, true)}
               ${note('root:about', 'About', 'Capgemini, two years on my own, then Semantics.')}
               ${note('root:contact', 'Contact', 'Got a messy, critical problem? Say hello.')}
-              ${note('root:settings', 'Settings', 'Six screens, sound, scanlines. T and M work from anywhere.')}
+              ${note('root:settings', 'Settings', 'Skin, theme, sound, scanlines. S, T and M work from anywhere.')}
             </div>
           </div>`,
   );
@@ -245,12 +250,15 @@ export function homeScreens() {
           </nav>
           <div class="panel">
             <div class="previews">
-              ${note('about:capgemini', 'Capgemini Engineering', 'Software engineer. Where I learned to build for large, serious systems.', '', { name: 'about-1200', focus: '50% 30%' })}
-              ${note('about:independent', 'Independent', 'Products, end to end.', `<ul class="stops">${link('bombyx', '’24')}${link('scandellari', '’25')}${link('halion', '’26')}</ul>`, { name: 'about-1200', focus: '50% 30%' })}
-              ${note('about:semantics', 'Semantics', 'CEO and founder. Quantara is in service.', `<ul class="stops">${link('quantara', '’26')}</ul>`, { name: 'about-1200', focus: '50% 30%' }, true)}
+              ${note('about:capgemini', 'Capgemini Engineering', 'Software engineer on Web3 products and high-performance web apps. I built the web app and the backend, and made all of it fast.', kv([['Role', 'Software engineer'], ['Until', '2024'], ['Work', 'Web3 products, web apps'], ['Focus', 'Performance, web app + backend']]))}
+              ${note('about:independent', 'Independent', 'Products, end to end. A railway contractor’s website is where I learned the field.', `${kv([['Role', 'Independent engineer'], ['Period', '2024 — 2026'], ['Work', 'Three client products']])}<ul class="stops">${link('bombyx', '’24')}${link('scandellari', '’25')}${link('halion', '’26')}</ul>`)}
+              ${note('about:semantics', 'Semantics', 'CEO and founder. Software for niche, extremely complex work that stayed in the dark until now. Quantara is in service.', `${kv([['Role', 'CEO and founder'], ['Since', '2026'], ['Focus', 'Niche, highly complex work'], ['Aim', 'Standards where there are none']])}<ul class="stops">${link('quantara', '’26')}</ul>`, undefined, true)}
             </div>
           </div>`,
   );
+
+  // The address is not in the page: it is rebuilt in the browser, when someone asks for it.
+  const mail = btoa([...'nicco6598@gmail.com'].reverse().join(''));
 
   const contact = screen(
     'contact',
@@ -259,7 +267,7 @@ export function homeScreens() {
           <nav class="list" aria-label="Contact">
             <p class="intro">Got a messy, critical problem? Write me. I answer from Milan.</p>
             <ul class="menu">
-              ${item({ num: '01', label: 'Email', meta: '↗', preview: 'contact:email', href: 'mailto:nicco6598@gmail.com' })}
+              ${item({ num: '01', label: 'Email', meta: '↗', preview: 'contact:email', attrs: 'data-mail' })}
               ${item({ num: '02', label: 'GitHub', meta: '↗', preview: 'contact:github', href: 'https://github.com/Nicco6598', external: true })}
               ${item({ num: '03', label: 'LinkedIn', meta: '↗', preview: 'contact:linkedin', href: 'https://www.linkedin.com/in/marconiccolini-/', external: true })}
               ${item({ num: '04', label: 'Semantics', meta: '↗', preview: 'contact:semantics', href: 'https://semantics-nu.vercel.app/', external: true, brand: true })}
@@ -267,11 +275,16 @@ export function homeScreens() {
           </nav>
           <div class="panel">
             <div class="previews">
-              ${note('contact:email', 'nicco6598@gmail.com', 'The fastest way. Tell me what is hard about your work.', '', { name: 'contact-1200', focus: '50% 30%' })}
-              ${note('contact:github', 'github.com/Nicco6598', 'The code, in the open where it can be.', '', { name: 'contact-1200', focus: '50% 30%' })}
-              ${note('contact:linkedin', 'in/marconiccolini-', 'Where the career line is written down.', '', { name: 'contact-1200', focus: '50% 30%' })}
-              ${note('contact:semantics', 'Semantics', 'The company. Software for work that cannot stop.', '', { name: 'contact-1200', focus: '50% 30%' }, true)}
+              ${note('contact:email', 'Email', 'The fastest way. Tell me what is hard about your work.', `<button class="chip chip--mail" type="button" data-mail-show data-m="${mail}">Show address</button>`)}
+              ${note('contact:github', 'github.com/Nicco6598', 'The code, in the open where it can be.')}
+              ${note('contact:linkedin', 'in/marconiccolini-', 'Where the career line is written down.')}
+              ${note('contact:semantics', 'Semantics', 'The company. Software for work that cannot stop.', '', undefined, true)}
             </div>
+            <dl class="avail">
+              <div><dt>Replies</dt><dd>Within 72 hours</dd></div>
+              <div><dt>Looking for</dt><dd>Niche, extremely complex work that has stayed in the dark until now: no standards, a lot of time wasted, the problem never solved. The kind of work Semantics exists for.</dd></div>
+              <div><dt>Based in</dt><dd>Milano · <time data-clock></time></dd></div>
+            </dl>
             <p class="ledger">© <span data-year></span> Marco Niccolini · Milano</p>
           </div>`,
   );
@@ -283,22 +296,37 @@ export function homeScreens() {
     )
     .join('')}</div>`;
 
+  const skins = `<div class="swatches swatches--skins">${(
+    [
+      ['handheld', 'Chunky, pixel type, hard frames.'],
+      ['terminal', 'Phosphor, mono type, no chrome.'],
+      ['studio', 'Clean sans, soft corners, full colour photos.'],
+    ] as const
+  )
+    .map(
+      ([skin, text]) =>
+        `<button class="swatch swatch--skin" type="button" data-skin-set="${skin}" aria-pressed="false"><b>${skin}</b><small>${text}</small></button>`,
+    )
+    .join('')}</div>`;
+
   const settings = screen(
     'settings',
     'Settings',
     `
           <nav class="list" aria-label="Settings">
             <ul class="menu">
-              ${item({ num: '01', label: 'Theme', meta: '<span data-label="theme"></span>', preview: 'settings:theme', drill: true, attrs: 'data-setting="theme"' })}
-              ${item({ num: '02', label: 'Sound', meta: '<span data-label="sound"></span>', preview: 'settings:sound', drill: true, attrs: 'data-setting="sound"' })}
-              ${item({ num: '03', label: 'Scanlines', meta: '<span data-label="fx"></span>', preview: 'settings:fx', drill: true, attrs: 'data-setting="fx"' })}
+              ${item({ num: '01', label: 'Skin', meta: '<span data-label="skin"></span>', preview: 'settings:skin', drill: true, attrs: 'data-setting="skin"' })}
+              ${item({ num: '02', label: 'Theme', meta: '<span data-label="theme"></span>', preview: 'settings:theme', drill: true, attrs: 'data-setting="theme"' })}
+              ${item({ num: '03', label: 'Sound', meta: '<span data-label="sound"></span>', preview: 'settings:sound', drill: true, attrs: 'data-setting="sound"' })}
+              ${item({ num: '04', label: 'Scanlines', meta: '<span data-label="fx"></span>', preview: 'settings:fx', drill: true, attrs: 'data-setting="fx"' })}
             </ul>
           </nav>
           <div class="panel">
             <div class="previews">
+              ${note('settings:skin', 'Skin', 'Same content, three interfaces: a handheld, a terminal, a studio. Picking one also sets its screen.', skins, { name: 'portrait-1024', focus: '50% 25%' })}
               ${note('settings:theme', 'Theme', 'Six screens. Every photograph is redrawn in whichever one you pick.', swatches, { name: 'portrait-1024', focus: '50% 25%' })}
-              ${note('settings:sound', 'Sound', 'Small square-wave blips when you move and open things. Off by default.', '', { name: 'portrait-1024', focus: '50% 25%' })}
-              ${note('settings:fx', 'Scanlines', 'A faint line pattern over the screen, for the CRT mood. Off by default.', '', { name: 'portrait-1024', focus: '50% 25%' })}
+              ${note('settings:sound', 'Sound', 'Small square-wave blips when you move and open things. Off by default.', `<button class="chip chip--mail" type="button" data-sfx="move">Move</button><button class="chip chip--mail" type="button" data-sfx="open">Open</button><button class="chip chip--mail" type="button" data-sfx="back">Back</button>`)}
+              ${note('settings:fx', 'Scanlines', 'A faint line pattern over the screen, for the CRT mood. Off by default.', `<div class="fxdemo"><div><b>Off</b><span>Clean screen. Text and photographs as they are.</span></div><div class="fxdemo__on"><b>On</b><span>A faint line pattern over everything.</span></div></div>`)}
             </div>
           </div>`,
   );

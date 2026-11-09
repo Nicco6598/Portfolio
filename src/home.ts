@@ -1,6 +1,6 @@
 import { ditherSlot, preload, scanIn } from './core/dither';
-import { createShell, hasModifier, isTyping, toggleScanlines, toggleSound, toggleTheme } from './core/shell';
-import { sfx } from './core/sound';
+import { createShell, hasModifier, isTyping, toggleScanlines, toggleSkin, toggleSound, toggleTheme } from './core/shell';
+import { setSound, sfx, soundOn } from './core/sound';
 import { reducedMotion } from './core/store';
 import { typeInto } from './core/typewriter';
 
@@ -25,6 +25,7 @@ const TITLES: Record<string, string> = {
 const touchLike = () => window.matchMedia('(pointer: coarse), (max-width: 760px)').matches;
 
 let current = 'root';
+root.dataset.screen = current;
 let depth = 0;
 let booting = !root.hasAttribute('data-booted');
 const remembered = new Map<string, number>();
@@ -139,27 +140,51 @@ window.addEventListener('popstate', render);
 // Activating things ------------------------------------------------------------
 
 function toggleSetting(setting: string) {
+  if (setting === 'skin') toggleSkin();
   if (setting === 'theme') toggleTheme();
   if (setting === 'sound') toggleSound();
   if (setting === 'fx') toggleScanlines();
+}
+
+/** The address is never in the page source: it is rebuilt here, shown and copied only when asked for. */
+async function revealMail() {
+  const button = document.querySelector<HTMLElement>('[data-mail-show]');
+  const preview = button?.closest<HTMLElement>('.preview');
+  if (!button?.dataset.m || !preview) return;
+  const address = [...atob(button.dataset.m)].reverse().join('');
+  const title = preview.querySelector('.preview__title')!;
+  title.textContent = address;
+  title.classList.add('preview__title--mail');
+  let copied = false;
+  try {
+    await navigator.clipboard.writeText(address);
+    copied = true;
+  } catch {
+    /* no clipboard access: the address is on screen to copy by hand */
+  }
+  button.textContent = copied ? 'Copied ✓' : 'Select and copy';
+  if (!preview.querySelector('.chip--open')) {
+    const open = document.createElement('a');
+    open.className = 'chip chip--mail chip--open';
+    open.href = `mailto:${address}`;
+    open.textContent = 'Open mail app';
+    button.after(open);
+  }
 }
 
 viewport.addEventListener('click', (event) => {
   const item = (event.target as Element).closest<HTMLElement>('.item');
   if (!item) return;
 
-  // On a phone the first tap picks, the second opens.
-  if (touchLike() && !item.classList.contains('is-active')) {
-    event.preventDefault();
-    select(item, { focus: false });
-    return;
-  }
-
-  select(item);
+  // A tap picks and opens in one go; the focus ring stays off a touch screen.
+  select(item, { focus: !touchLike() });
   if (item.matches('a[href^="#"]')) {
     event.preventDefault();
     sfx.open();
     open((item as HTMLAnchorElement).hash.slice(1));
+  } else if (item.hasAttribute('data-mail')) {
+    sfx.open();
+    void revealMail();
   } else if (item.dataset.setting) {
     toggleSetting(item.dataset.setting);
   } else if (item.matches('a')) {
@@ -168,6 +193,13 @@ viewport.addEventListener('click', (event) => {
 });
 
 document.addEventListener('click', (event) => {
+  const target = event.target as Element;
+  if (target.closest('[data-mail-show]')) void revealMail();
+  const demo = target.closest<HTMLElement>('[data-sfx]')?.dataset.sfx as 'move' | 'open' | 'back' | undefined;
+  if (demo) {
+    if (!soundOn()) setSound(true);
+    sfx[demo]();
+  }
   const act = (event.target as Element).closest<HTMLElement>('[data-act]')?.dataset.act;
   if (act === 'back') back();
   else if (act === 'move') move(1);
@@ -277,7 +309,10 @@ if (booting) {
   document.querySelector('.boot')?.addEventListener('animationend', (event) => {
     if ((event as AnimationEvent).animationName === 'boot-out') finishBoot();
   });
-  document.querySelector('.boot')?.addEventListener('pointerdown', finishBoot);
+  // Only a primary press skips it: a right click opens the context menu and must not cut the boot short.
+  document.querySelector('.boot')?.addEventListener('pointerdown', (event) => {
+    if ((event as PointerEvent).button === 0) finishBoot();
+  });
 }
 
 // Start ------------------------------------------------------------------------
